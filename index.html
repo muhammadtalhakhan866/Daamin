@@ -8,6 +8,8 @@
   <!-- stock placeholders and project statuses are unverified. Delete this meta  -->
   <!-- tag once real, authorized project images and confirmed content are in.    -->
   <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" sizes="64x64" href="images/favicon.png" />
+  <link rel="apple-touch-icon" href="images/apple-touch-icon.png" />
   <meta name="description" content="Daamin Estate & Builder — real estate, construction and property development in Karachi, Pakistan. Explore projects and contact our team." />
   <title>Daamin Estate & Builder | Real Estate & Construction in Karachi</title>
   <style>
@@ -51,8 +53,7 @@
     header { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.94); backdrop-filter: blur(14px); border-bottom: 1px solid rgba(18,25,66,.08); }
     .nav { min-height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
     .brand { display: flex; align-items: center; gap: 12px; min-width: 200px; }
-    .brand-mark { display: grid; place-items: center; width: 43px; height: 43px; border-radius: 12px; background: var(--navy); color: white; font-weight: 900; letter-spacing: -.08em; position: relative; }
-    .brand-mark:after { content: ""; position: absolute; width: 9px; height: 9px; right: 5px; bottom: 5px; background: var(--orange); border-radius: 2px; }
+    .brand-mark { width: 46px; height: 46px; flex: 0 0 auto; object-fit: contain; }
     .brand-name { display: block; font-weight: 850; color: var(--navy); line-height: 1.1; font-size: .96rem; }
     .brand-tag { display: block; color: var(--muted); font-size: .65rem; letter-spacing: .12em; margin-top: 5px; }
     .nav-links { display: flex; align-items: center; gap: 24px; font-size: .91rem; font-weight: 650; color: #38405a; }
@@ -151,8 +152,8 @@
     .cta-inner p { color: var(--muted); margin: 0; }
     footer { background: #0d1335; color: white; padding: 58px 0 24px; }
     .footer-grid { display: grid; grid-template-columns: 1.3fr .7fr .8fr 1fr; gap: 36px; padding-bottom: 42px; }
-    footer .brand-name { color: white; }
-    footer .brand-tag { color: rgba(255,255,255,.55); }
+    .footer-logo { display: inline-flex; background: var(--white); border-radius: 16px; padding: 15px 17px; }
+    .footer-logo img { width: auto; height: 80px; object-fit: contain; }
     .footer-about { color: rgba(255,255,255,.63); font-size: .9rem; margin-top: 18px; max-width: 300px; }
     footer h4 { margin: 0 0 15px; }
     .footer-links { display: grid; gap: 10px; color: rgba(255,255,255,.67); font-size: .88rem; }
@@ -203,6 +204,8 @@
       .brand-name { font-size: .86rem; }
       .brand-tag { font-size: .58rem; }
       .brand-mark { width: 39px; height: 39px; }
+      .footer-logo { padding: 12px 14px; }
+      .footer-logo img { height: 64px; }
       .hero-visual { min-height: 320px; }
       .floating-card { width: 175px; padding: 15px; }
       .hero-caption { left: 18px; bottom: 45px; }
@@ -224,7 +227,7 @@
   <header>
     <nav class="container nav" aria-label="Main navigation">
       <a class="brand" href="#home" aria-label="Daamin Estate & Builder home">
-        <span class="brand-mark" aria-hidden="true">D</span>
+        <img class="brand-mark" src="images/daamin-mark.png" alt="" width="196" height="196" />
         <span><span class="brand-name">DAAMIN ESTATE & BUILDER</span><span class="brand-tag">DAAMIN BUILDS BETTER</span></span>
       </a>
       <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks">Menu ☰</button>
@@ -434,7 +437,7 @@
     <div class="container">
       <div class="footer-grid">
         <div>
-          <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true">D</span><span><span class="brand-name">DAAMIN ESTATE & BUILDER</span><span class="brand-tag">DAAMIN BUILDS BETTER</span></span></a>
+          <a class="footer-logo" href="#home" aria-label="Daamin Estate &amp; Builder home"><img src="images/daamin-logo.png" alt="Daamin Estate &amp; Builder" width="270" height="268" /></a>
           <p class="footer-about">Real estate, construction and property development solutions in Karachi, Pakistan.</p>
         </div>
         <div><h4>Explore</h4><div class="footer-links"><a href="#about">About Us</a><a href="#services">Services</a><a href="#projects">Projects</a><a href="#gallery">Gallery</a></div></div>
