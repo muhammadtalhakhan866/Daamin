@@ -118,8 +118,17 @@
     .video-frame { position: relative; aspect-ratio: 9 / 16; display: grid; place-items: center;
       background: linear-gradient(162deg, rgba(255,255,255,.13), rgba(255,255,255,.03) 48%, rgba(10,16,42,.22)); }
     .video-frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .video-placeholder { display: grid; gap: 11px; justify-items: center; padding: 0 18px; text-align: center; color: rgba(255,255,255,.66); font-size: .8rem; }
-    .video-placeholder .play { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.32); color: white; font-size: 1.1rem; }
+    .video-frame { cursor: pointer; }
+    .video-sound { position: absolute; left: 12px; bottom: 12px; z-index: 2; width: 38px; height: 38px; padding: 0; display: grid; place-items: center; cursor: pointer;
+      border-radius: 50%; border: 1px solid rgba(255,255,255,.34); background: rgba(10,16,42,.55); color: white;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background .2s, transform .2s; }
+    .video-sound:hover { background: rgba(10,16,42,.82); transform: translateY(-1px); }
+    .video-sound:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+    .video-sound svg { width: 17px; height: 17px; fill: currentColor; }
+    .video-sound .on { display: none; }
+    .video-sound[aria-pressed="true"] { background: var(--orange); border-color: transparent; }
+    .video-sound[aria-pressed="true"] .on { display: block; }
+    .video-sound[aria-pressed="true"] .off { display: none; }
     .video-body { padding: 15px 17px 19px; }
     .video-body h3 { font-size: 1rem; margin-bottom: 5px; }
     .video-body p { font-size: .84rem; color: rgba(255,255,255,.6); margin: 0; }
@@ -350,36 +359,33 @@
         <div class="video-grid">
           <article class="video-card">
             <div class="video-frame">
-              <!-- Swap this placeholder for the real clip when the file lands:
-                   <video controls preload="metadata" playsinline poster="images/video-1-poster.jpg">
-                     <source src="videos/featured-1.mp4" type="video/mp4">
-                   </video> -->
-              <div class="video-placeholder"><span class="play" aria-hidden="true">&#9654;</span><span>Video 1 &middot; awaiting file</span></div>
+              <video class="reel" loop muted playsinline preload="none" poster="images/video-1-poster.jpg" data-title="Elaaf Tower project film">
+                <source src="videos/featured-1.mp4" type="video/mp4">
+              </video>
+              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Tower project film"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
-            <div class="video-body"><h3>Featured video 1</h3><p>Add the title and project once the clip is supplied.</p></div>
+            <div class="video-body"><h3>Elaaf Tower</h3><p>Project film &middot; Scheme 33, Karachi</p></div>
           </article>
           <article class="video-card">
             <div class="video-frame">
-              <!-- Swap this placeholder for the real clip when the file lands:
-                   <video controls preload="metadata" playsinline poster="images/video-2-poster.jpg">
-                     <source src="videos/featured-2.mp4" type="video/mp4">
-                   </video> -->
-              <div class="video-placeholder"><span class="play" aria-hidden="true">&#9654;</span><span>Video 2 &middot; awaiting file</span></div>
+              <video class="reel" loop muted playsinline preload="none" poster="images/video-2-poster.jpg" data-title="Elaaf Icon, 30 September 2026">
+                <source src="videos/featured-2.mp4" type="video/mp4">
+              </video>
+              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 30 September 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
-            <div class="video-body"><h3>Featured video 2</h3><p>Add the title and project once the clip is supplied.</p></div>
+            <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 30 September 2026</p></div>
           </article>
           <article class="video-card">
             <div class="video-frame">
-              <!-- Swap this placeholder for the real clip when the file lands:
-                   <video controls preload="metadata" playsinline poster="images/video-3-poster.jpg">
-                     <source src="videos/featured-3.mp4" type="video/mp4">
-                   </video> -->
-              <div class="video-placeholder"><span class="play" aria-hidden="true">&#9654;</span><span>Video 3 &middot; awaiting file</span></div>
+              <video class="reel" loop muted playsinline preload="none" poster="images/video-3-poster.jpg" data-title="Elaaf Icon, 10 October 2026">
+                <source src="videos/featured-3.mp4" type="video/mp4">
+              </video>
+              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 10 October 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
-            <div class="video-body"><h3>Featured video 3</h3><p>Add the title and project once the clip is supplied.</p></div>
+            <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 10 October 2026</p></div>
           </article>
         </div>
-        <p class="video-note">Three featured clips shown here in 9:16. The full set is reviewable in the gallery below.</p>
+        <p class="video-note">All three run together without sound. Tap any clip to hear it, or use the speaker button in its corner.</p>
       </div>
     </section>
 
@@ -580,6 +586,57 @@
       document.getElementById('formStatus').textContent = 'Opening WhatsApp with your enquiry. Please review and send the message there.';
       window.open(url, '_blank', 'noopener,noreferrer');
     });
+    /* Featured reels: all three run together, muted, and only while the band is on screen.
+       Clicking a reel (or its corner button) gives that one the sound and mutes the rest. */
+    (function () {
+      var band = document.getElementById('videos');
+      if (!band) return;
+      var cards = Array.prototype.slice.call(band.querySelectorAll('.video-card'));
+      var reels = cards.map(function (c) { return c.querySelector('video'); });
+      var quiet = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function sound(target) {
+        reels.forEach(function (v) {
+          var on = v === target;
+          v.muted = !on;
+          var btn = v.parentElement.querySelector('.video-sound');
+          if (btn) {
+            btn.setAttribute('aria-pressed', String(on));
+            btn.setAttribute('aria-label', (on ? 'Mute ' : 'Turn on sound for ') + (v.dataset.title || 'this video'));
+          }
+          if (on && v.paused) v.play().catch(function () {});
+        });
+      }
+
+      cards.forEach(function (card) {
+        var v = card.querySelector('video');
+        card.querySelector('.video-frame').addEventListener('click', function (e) {
+          if (e.target.closest('.video-sound')) return;
+          sound(v.muted ? v : null);
+        });
+        card.querySelector('.video-sound').addEventListener('click', function (e) {
+          e.stopPropagation();
+          sound(v.muted ? v : null);
+        });
+      });
+
+      sound(null);
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              if (!quiet) reels.forEach(function (v) { v.play().catch(function () {}); });
+            } else {
+              reels.forEach(function (v) { v.pause(); });
+              sound(null);
+            }
+          });
+        }, { threshold: 0.1 }).observe(band);
+      } else if (!quiet) {
+        reels.forEach(function (v) { v.play().catch(function () {}); });
+      }
+    })();
+
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
