@@ -117,7 +117,14 @@
     .video-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,.34); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 22px 56px rgba(5,10,30,.42); }
     .video-frame { position: relative; aspect-ratio: 9 / 16; display: grid; place-items: center;
       background: linear-gradient(162deg, rgba(255,255,255,.13), rgba(255,255,255,.03) 48%, rgba(10,16,42,.22)); }
-    .video-frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .video-frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+    .video-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: opacity .3s ease; }
+    .video-cue { position: absolute; z-index: 1; width: 56px; height: 56px; display: grid; place-items: center; border-radius: 50%;
+      background: rgba(10,16,42,.5); border: 1px solid rgba(255,255,255,.42); color: #fff;
+      backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: opacity .3s ease, transform .3s ease; }
+    .video-cue svg { width: 22px; height: 22px; fill: currentColor; margin-left: 3px; }
+    .video-card.is-playing .video-poster { opacity: 0; }
+    .video-card.is-playing .video-cue { opacity: 0; transform: scale(.9); }
     .video-frame { cursor: pointer; }
     .video-sound { position: absolute; left: 12px; bottom: 12px; z-index: 2; width: 38px; height: 38px; padding: 0; display: grid; place-items: center; cursor: pointer;
       border-radius: 50%; border: 1px solid rgba(255,255,255,.34); background: rgba(10,16,42,.55); color: white;
@@ -359,33 +366,39 @@
         <div class="video-grid">
           <article class="video-card">
             <div class="video-frame">
-              <video class="reel" loop muted playsinline preload="none" poster="images/video-1-poster.jpg" data-title="Elaaf Tower project film">
+              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Tower project film">
                 <source src="videos/featured-1.mp4" type="video/mp4">
               </video>
+              <img class="video-poster" src="images/video-1-poster.jpg" alt="Elaaf Tower, Scheme 33, Karachi" width="720" height="1280" loading="lazy">
+              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
               <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Tower project film"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
             <div class="video-body"><h3>Elaaf Tower</h3><p>Project film &middot; Scheme 33, Karachi</p></div>
           </article>
           <article class="video-card">
             <div class="video-frame">
-              <video class="reel" loop muted playsinline preload="none" poster="images/video-2-poster.jpg" data-title="Elaaf Icon, 30 September 2026">
+              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Icon, 30 September 2026">
                 <source src="videos/featured-2.mp4" type="video/mp4">
               </video>
+              <img class="video-poster" src="images/video-2-poster.jpg" alt="Elaaf Icon construction update, 30 September 2026" width="720" height="1280" loading="lazy">
+              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
               <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 30 September 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
             <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 30 September 2026</p></div>
           </article>
           <article class="video-card">
             <div class="video-frame">
-              <video class="reel" loop muted playsinline preload="none" poster="images/video-3-poster.jpg" data-title="Elaaf Icon, 10 October 2026">
+              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Icon, 10 October 2026">
                 <source src="videos/featured-3.mp4" type="video/mp4">
               </video>
+              <img class="video-poster" src="images/video-3-poster.jpg" alt="Elaaf Icon construction update, 10 October 2026" width="720" height="1280" loading="lazy">
+              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
               <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 10 October 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
             </div>
             <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 10 October 2026</p></div>
           </article>
         </div>
-        <p class="video-note">All three run together without sound. Tap any clip to hear it, or use the speaker button in its corner.</p>
+        <p class="video-note">Hover a clip to play it with sound &mdash; on a phone, tap it. The speaker button in each corner mutes it again.</p>
       </div>
     </section>
 
@@ -586,54 +599,79 @@
       document.getElementById('formStatus').textContent = 'Opening WhatsApp with your enquiry. Please review and send the message there.';
       window.open(url, '_blank', 'noopener,noreferrer');
     });
-    /* Featured reels: all three run together, muted, and only while the band is on screen.
-       Clicking a reel (or its corner button) gives that one the sound and mutes the rest. */
+    /* Featured reels: nothing plays until a reel is hovered (or tapped). The thumbnail
+       shows until then. Hover starts that reel with sound and stops any other; leaving
+       stops it and brings the thumbnail back. The corner button mutes without stopping.
+       Browsers refuse sound before the page has had a real click, so the first hover may
+       come up silent and fall back to muted playback. */
     (function () {
       var band = document.getElementById('videos');
       if (!band) return;
       var cards = Array.prototype.slice.call(band.querySelectorAll('.video-card'));
-      var reels = cards.map(function (c) { return c.querySelector('video'); });
       var quiet = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var gestured = false;
+      ['pointerdown', 'keydown', 'touchstart'].forEach(function (evt) {
+        document.addEventListener(evt, function () { gestured = true; }, { once: true, passive: true });
+      });
 
-      function sound(target) {
-        reels.forEach(function (v) {
-          var on = v === target;
-          v.muted = !on;
-          var btn = v.parentElement.querySelector('.video-sound');
-          if (btn) {
-            btn.setAttribute('aria-pressed', String(on));
-            btn.setAttribute('aria-label', (on ? 'Mute ' : 'Turn on sound for ') + (v.dataset.title || 'this video'));
-          }
-          if (on && v.paused) v.play().catch(function () {});
+      var active = null;
+
+      function syncButton(card) {
+        var v = card.querySelector('video');
+        var btn = card.querySelector('.video-sound');
+        var on = !v.muted && !v.paused;
+        btn.setAttribute('aria-pressed', String(on));
+        btn.setAttribute('aria-label', (on ? 'Mute ' : 'Turn on sound for ') + (v.dataset.title || 'this video'));
+      }
+
+      function stop(card) {
+        if (!card) return;
+        var v = card.querySelector('video');
+        v.pause();
+        v.muted = true;
+        card.classList.remove('is-playing');
+        syncButton(card);
+        if (active === card) active = null;
+      }
+
+      function start(card, wantSound) {
+        if (active && active !== card) stop(active);
+        active = card;
+        var v = card.querySelector('video');
+        card.classList.add('is-playing');
+        v.muted = !wantSound;
+        v.play().then(function () { syncButton(card); }).catch(function () {
+          v.muted = true;
+          v.play().then(function () { syncButton(card); }).catch(function () {
+            card.classList.remove('is-playing');
+            if (active === card) active = null;
+          });
+          syncButton(card);
         });
       }
 
       cards.forEach(function (card) {
         var v = card.querySelector('video');
-        card.querySelector('.video-frame').addEventListener('click', function (e) {
+        card.addEventListener('mouseenter', function () { if (!quiet) start(card, gestured); });
+        card.addEventListener('mouseleave', function () { stop(card); });
+        card.addEventListener('click', function (e) {
           if (e.target.closest('.video-sound')) return;
-          sound(v.muted ? v : null);
+          start(card, true);
         });
         card.querySelector('.video-sound').addEventListener('click', function (e) {
           e.stopPropagation();
-          sound(v.muted ? v : null);
+          if (v.paused) { start(card, true); return; }
+          v.muted = !v.muted;
+          syncButton(card);
         });
+        syncButton(card);
       });
 
-      sound(null);
+      /* No mouseleave fires on touch, so stop whatever is running once the band scrolls off. */
       if ('IntersectionObserver' in window) {
         new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              if (!quiet) reels.forEach(function (v) { v.play().catch(function () {}); });
-            } else {
-              reels.forEach(function (v) { v.pause(); });
-              sound(null);
-            }
-          });
-        }, { threshold: 0.1 }).observe(band);
-      } else if (!quiet) {
-        reels.forEach(function (v) { v.play().catch(function () {}); });
+          entries.forEach(function (entry) { if (!entry.isIntersecting) stop(active); });
+        }, { threshold: 0 }).observe(band);
       }
     })();
 
