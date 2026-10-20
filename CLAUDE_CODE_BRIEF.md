@@ -37,7 +37,7 @@ Projects previously discussed include:
 - A-142 Punjabi Saudagar — interior/finishing work referenced.
 - R-30, Soomra Society — society confirmed by the company 2026-10-20. Previously referenced as nearing completion; stage still needs confirmation.
 - R-31, Hansa Society — society confirmed by the company 2026-10-20. R-31 is Hansa Society, not Soomra. Previously referenced at wall construction stage; stage still needs confirmation.
-- A-96 — Soomra Society / Zeenatabad Society naming needs verification.
+- A-96, Zeenatabad Society — society confirmed by the company 2026-10-20. Not Soomra Society. Construction stage still needs confirmation.
 - Falcon Complex, New Malir — renovation work previously mentioned.
 
 Other site references include C-16/C-17/C-35, but current project details need confirmation.
