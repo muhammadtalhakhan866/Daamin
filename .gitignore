@@ -1,5 +1,6 @@
 # Vercel
 .vercel
+.env*
 
 # Dependencies
 node_modules/
