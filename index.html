@@ -92,6 +92,9 @@
     .founder-plate { position: absolute; left: 0; right: 0; bottom: 0; padding: 70px 26px 24px; border-radius: 0 0 24px 24px; background: linear-gradient(transparent, rgba(10,15,44,.9)); color: #fff; }
     .founder-plate strong { display: block; font-size: 1.4rem; letter-spacing: -.02em; }
     .founder-plate span { color: #ffb08a; font-size: .86rem; font-weight: 650; }
+    /* The supplied cover carries its own text, so the name sits beneath it instead of over it. */
+    .founder.has-photo .founder-plate { position: static; padding: 16px 4px 0; border-radius: 0; background: none; color: var(--navy); }
+    .founder.has-photo .founder-plate span { color: var(--orange); }
     .founder-story { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
     .founder-story .eyebrow { margin-bottom: 10px; }
     .about-copy p { color: var(--muted); }
@@ -562,12 +565,9 @@
 
     <section class="section about" id="about">
       <div class="container about-grid">
-        <figure class="founder">
+        <figure class="founder has-photo">
           <div class="founder-photo">
-            <!-- When the portrait arrives: replace the two spans below with
-                 <img src="images/sameer-khan.webp" alt="Sameer Khan, founder of Daamin Estate &amp; Builder" width="..." height="..."> -->
-            <span class="founder-initial" aria-hidden="true">SK</span>
-            <span class="founder-pending">Portrait to be added</span>
+            <img src="images/sameer-khan.webp" alt="Sameer Khan, founder of Daamin Estate &amp; Builder, on a Daamin magazine-style cover" width="1122" height="1402" loading="lazy">
           </div>
           <figcaption class="founder-plate"><strong>Sameer Khan</strong><span>Founder, Daamin Estate &amp; Builder</span></figcaption>
         </figure>
