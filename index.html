@@ -457,9 +457,9 @@
           <button class="filter" data-filter="interior">Interiors & renovation</button>
         </div>
         <div class="project-grid" id="projectGrid">
-          <article class="project-card" data-category="development" data-real="false" data-enquiry="Elaaf Icon">
+          <article class="project-card" data-category="development" data-real="true" data-enquiry="Elaaf Icon" data-photos="images/elaaf-icon-1.jpg|images/elaaf-icon-2.jpg|images/elaaf-icon-3.jpg|images/elaaf-icon-4.jpg|images/elaaf-icon-5.jpg">
             <button class="project-open" type="button" aria-haspopup="dialog" aria-label="View Elaaf Icon, Scheme 33 · Karachi">
-              <span class="project-image"><img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=900&q=85" alt="Apartment building" loading="lazy"><span class="status">Status to confirm</span><span class="project-zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span></span>
+              <span class="project-image"><img src="images/elaaf-icon-1.jpg" alt="Elaaf Icon construction site, Scheme 33, Karachi" width="1085" height="1450" loading="lazy"><span class="status">Status to confirm</span><span class="project-zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span></span>
               <span class="project-caption"><span class="project-location">Scheme 33 · Karachi</span><span class="project-name">Elaaf Icon</span></span>
             </button>
             <p class="project-desc" hidden>Residential apartment project associated with 2-bedroom and 3-bedroom options. Confirm current construction stage and availability.</p>
@@ -740,10 +740,19 @@
 
       function visibleCards() { return cards.filter(function (card) { return !card.hidden; }); }
 
-      function show(card) {
+      var index = 0;
+
+      /* A project may carry several pictures (data-photos, "|" separated); otherwise just its tile picture. */
+      function photosOf(card) {
+        return card.dataset.photos ? card.dataset.photos.split('|') : [];
+      }
+
+      function show(card, i) {
         current = card;
+        index = i || 0;
         var img = card.querySelector('img');
-        var original = img.currentSrc || img.src;
+        var photos = photosOf(card);
+        var original = photos.length ? new URL(photos[index], document.baseURI).href : (img.currentSrc || img.src);
         var large = original.replace('w=900', 'w=1600');
         /* Show the tile's own (already fetched) picture at once, hidden until it has painted so
            the previous project's picture never sits under the new name, then swap in the sharper one. */
@@ -767,15 +776,33 @@
         vDesc.textContent = card.querySelector('.project-desc').textContent;
         vNote.hidden = card.dataset.real === 'true';
         var list = visibleCards();
-        vCount.textContent = (list.indexOf(card) + 1) + ' of ' + list.length;
-        vPrev.hidden = vNext.hidden = list.length < 2;
+        var where = 'Project ' + (list.indexOf(card) + 1) + ' of ' + list.length;
+        vCount.textContent = photos.length > 1 ? 'Photo ' + (index + 1) + ' of ' + photos.length + ' · ' + where : where;
+        vPrev.hidden = vNext.hidden = list.length < 2 && photos.length < 2;
       }
 
+      /* Step through this project's pictures first; past the last (or before the first) move to the
+         neighbouring project, entering it at its first picture going forward, its last going back. */
       function step(direction) {
+        if (!current) return;
+        var count = Math.max(photosOf(current).length, 1);
+        var next = index + direction;
+        if (next >= 0 && next < count) { show(current, next); return; }
         var list = visibleCards();
-        if (list.length < 2 || !current) return;
-        show(list[(list.indexOf(current) + direction + list.length) % list.length]);
+        var target = list[(list.indexOf(current) + direction + list.length) % list.length];
+        show(target, direction > 0 ? 0 : Math.max(photosOf(target).length, 1) - 1);
       }
+
+      /* Swipe on touch screens. */
+      var touchX = null;
+      var stage = viewer.querySelector('.viewer-stage');
+      stage.addEventListener('touchstart', function (event) { touchX = event.touches[0].clientX; }, { passive: true });
+      stage.addEventListener('touchend', function (event) {
+        if (touchX === null) return;
+        var dx = event.changedTouches[0].clientX - touchX;
+        touchX = null;
+        if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+      }, { passive: true });
 
       cards.forEach(function (card) {
         card.querySelector('.project-open').addEventListener('click', function () {
