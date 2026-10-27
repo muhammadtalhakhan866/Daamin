@@ -231,6 +231,7 @@
     /* Client reviews: two rows drifting slowly in opposite directions. */
     .reviews { background: #fff; overflow: hidden; }
     .reviews[hidden] { display: none; }
+    .review-rows[hidden] { display: none; }
     .review-rows { display: grid; gap: 18px; margin-top: 34px; }
     .review-row { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
     .review-track { display: flex; align-items: flex-start; gap: 16px; width: max-content; animation: reviewDrift var(--drift, 80s) linear infinite; }
@@ -259,6 +260,46 @@
     .review-viewer .review-stars .base { color: rgba(255,255,255,.3); }
     .review-full-text { margin: 0 0 22px; font-size: 1.08rem; line-height: 1.75; color: rgba(255,255,255,.95); }
     .review-full-who { margin: 0; font-weight: 800; color: #fff; }
+    /* "Write a review": an orange gradient stroke that runs around the button. */
+    @property --ang { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+    .review-cta-row { display: flex; justify-content: flex-end; margin-top: 26px; }
+    .review-cta { position: relative; display: inline-flex; padding: 2.5px; border: 0; border-radius: 999px; cursor: pointer;
+      background: conic-gradient(from var(--ang), #ee652d, #ffb27a 22%, #ff7a2f 46%, rgba(238,101,45,.12) 72%, #ee652d);
+      animation: ctaRun 3.4s linear infinite; box-shadow: 0 6px 22px rgba(238,101,45,.22); transition: box-shadow .25s, transform .25s; }
+    .review-cta > span { display: inline-flex; align-items: center; gap: 10px; padding: 12px 26px; border-radius: 999px; background: #fff; color: var(--navy); font-weight: 800; font-size: .95rem; transition: background .25s; }
+    .review-cta svg { width: 17px; height: 17px; fill: none; stroke: var(--orange); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .review-cta:hover { box-shadow: 0 10px 30px rgba(238,101,45,.35); transform: translateY(-2px); }
+    .review-cta:hover > span { background: #fff6f1; }
+    .review-cta:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; }
+    @keyframes ctaRun { to { --ang: 360deg; } }
+    @media (prefers-reduced-motion: reduce) { .review-cta { animation: none; } }
+    @media (max-width: 760px) { .review-cta-row { justify-content: center; } }
+    /* The review form, in the same glass as the viewers. */
+    .review-form-viewer { width: min(560px, calc(100vw - 32px)); }
+    .rf-shell { padding: 30px 30px 26px; }
+    .rf-title { margin: 0 0 4px; color: #fff; font-size: 1.45rem; letter-spacing: -.02em; padding-right: 44px; }
+    .rf-sub { margin: 0 0 20px; color: rgba(255,255,255,.72); font-size: .9rem; }
+    .rf-field { margin: 0 0 15px; padding: 0; border: 0; min-width: 0; }
+    .rf-field label, .rf-field legend { display: block; margin-bottom: 6px; padding: 0; font-size: .82rem; font-weight: 700; color: rgba(255,255,255,.92); }
+    .rf-field input[type="text"], .rf-field input[type="tel"], .rf-field select, .rf-field textarea { width: 100%; padding: 11px 13px; border: 1px solid rgba(255,255,255,.26); border-radius: 11px; background: rgba(255,255,255,.08); color: #fff; font: inherit; }
+    .rf-field select option { color: #172033; }
+    .rf-field textarea { resize: vertical; min-height: 110px; }
+    .rf-field input::placeholder, .rf-field textarea::placeholder { color: rgba(255,255,255,.42); }
+    .rf-field input:focus, .rf-field select:focus, .rf-field textarea:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(238,101,45,.25); }
+    .rf-note { margin: 6px 0 0; font-size: .76rem; color: rgba(255,255,255,.6); }
+    .rf-starrow { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; }
+    .rf-starrow input { position: absolute; opacity: 0; pointer-events: none; }
+    .rf-starrow label { margin: 0; padding: 0 4px; font-size: 2rem; line-height: 1; color: rgba(255,255,255,.28); cursor: pointer; transition: color .15s, transform .15s; }
+    .rf-starrow input:checked ~ label, .rf-starrow label:hover, .rf-starrow label:hover ~ label { color: #f0a500; }
+    .rf-starrow label:hover { transform: scale(1.12); }
+    .rf-starrow input:focus-visible + label { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 6px; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .rf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .rf-check { display: flex; align-items: flex-start; gap: 10px; font-size: .82rem; color: rgba(255,255,255,.85); cursor: pointer; }
+    .rf-check input { margin-top: 3px; accent-color: var(--orange); width: 17px; height: 17px; flex: 0 0 auto; }
+    .rf-error { min-height: 1.3em; margin: 10px 0 0; font-size: .86rem; color: #ffb4a2; }
+    .rf-submit { width: 100%; margin-top: 8px; }
+    .rf-done[hidden] { display: none; }
     @media (prefers-reduced-motion: reduce) {
       .review-row { -webkit-mask-image: none; mask-image: none; overflow-x: auto; }
       .review-track { animation: none; }
@@ -446,6 +487,9 @@
         <div class="section-head"><div><p class="eyebrow">Client reviews</p><h2>What our clients say.</h2><p class="lead">Experiences across our real estate, construction and development services.</p></div></div>
       </div>
       <div class="review-rows" id="reviewRows" role="region" aria-label="Client reviews"></div>
+      <div class="container review-cta-row">
+        <button class="review-cta" id="writeReviewBtn" type="button" aria-haspopup="dialog"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>Write a review</span></button>
+      </div>
     </section>
     <script type="application/json" id="reviewData">[
   {"name":"Ali W.","service":"Construction","text":"Solid construction quality and honest dealing. Communication was good, although a few project updates could have come sooner.","stars":4.5},
@@ -779,6 +823,38 @@
       <div class="review-full-top"><span class="review-service review-full-tag"></span><span class="review-full-stars"></span></div>
       <blockquote class="review-full-text"></blockquote>
       <p class="review-full-who"></p>
+    </div>
+  </dialog>
+
+  <dialog class="viewer review-viewer review-form-viewer" id="reviewForm" aria-labelledby="rfTitle">
+    <div class="viewer-shell review-shell rf-shell">
+      <button class="viewer-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <form id="rfForm" novalidate>
+        <h2 class="rf-title" id="rfTitle">Write a review</h2>
+        <p class="rf-sub">Tell us about your experience with Daamin. Your review is shown after our team has read it.</p>
+        <div class="rf-field"><label for="rfName">Your name</label><input id="rfName" name="name" type="text" maxlength="60" autocomplete="name" required placeholder="e.g. Ahmed R."></div>
+        <div class="rf-field"><label for="rfPhone">WhatsApp number</label><input id="rfPhone" name="phone" type="tel" inputmode="tel" maxlength="22" autocomplete="tel" required placeholder="0300 1234567"><p class="rf-note">Kept private. It is never shown on the website, only used if our team needs to speak with you about your review.</p></div>
+        <div class="rf-field"><label for="rfService">Service you used</label><select id="rfService" name="service"><option>Real Estate</option><option>Construction</option><option>Renovation</option><option>Property Development</option><option>Property Investment Guidance</option><option>Property Buying &amp; Selling</option><option>Project Sales &amp; Marketing</option><option>Other</option></select></div>
+        <fieldset class="rf-field rf-stars"><legend>Your rating</legend>
+          <div class="rf-starrow">
+            <input type="radio" id="rfS5" name="stars" value="5"><label for="rfS5" title="5 stars"><span class="sr">5 stars</span>&#9733;</label>
+            <input type="radio" id="rfS4" name="stars" value="4"><label for="rfS4" title="4 stars"><span class="sr">4 stars</span>&#9733;</label>
+            <input type="radio" id="rfS3" name="stars" value="3"><label for="rfS3" title="3 stars"><span class="sr">3 stars</span>&#9733;</label>
+            <input type="radio" id="rfS2" name="stars" value="2"><label for="rfS2" title="2 stars"><span class="sr">2 stars</span>&#9733;</label>
+            <input type="radio" id="rfS1" name="stars" value="1"><label for="rfS1" title="1 star"><span class="sr">1 star</span>&#9733;</label>
+          </div>
+        </fieldset>
+        <div class="rf-field"><label for="rfText">Your review</label><textarea id="rfText" name="text" rows="5" maxlength="600" required placeholder="What was your experience like?"></textarea><p class="rf-note"><span id="rfCount">0</span> / 600 characters</p></div>
+        <div class="rf-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+        <label class="rf-check"><input type="checkbox" id="rfConsent" name="consent"><span>I agree that my name and review may be shown on the Daamin website.</span></label>
+        <p class="rf-error" id="rfError" role="alert"></p>
+        <button class="btn btn-primary rf-submit" id="rfSubmit" type="submit">Send review</button>
+      </form>
+      <div class="rf-done" id="rfDone" hidden>
+        <h2 class="rf-title">Thank you!</h2>
+        <p class="rf-sub">We have received your review. It will appear on the website once our team has read and approved it.</p>
+        <button class="btn btn-primary rf-submit" id="rfClose" type="button">Close</button>
+      </div>
     </div>
   </dialog>
 
@@ -1119,8 +1195,20 @@
       if (!section || !rows || !raw) return;
       var real;
       try { real = JSON.parse(raw.textContent); } catch (e) { return; }
-      /* With no reviews in #reviewData the section simply stays hidden. */
-      if (Array.isArray(real) && real.length) start(real);
+      /* Reviews written here, plus any a customer sent in that the team has approved. The approved ones
+         come from /api/reviews (names and words only, never contact details); if that is slow or
+         unreachable the slider still shows the written ones. The section stays visible so the
+         "Write a review" button is always there. */
+      var written = Array.isArray(real) ? real : [];
+      section.hidden = false;
+      var approved = fetch('/api/reviews', { credentials: 'omit' })
+        .then(function (r) { return r.ok ? r.json() : { reviews: [] }; })
+        .catch(function () { return { reviews: [] }; });
+      var patience = new Promise(function (resolve) { setTimeout(function () { resolve({ reviews: [] }); }, 3000); });
+      Promise.race([approved, patience]).then(function (extra) {
+        var merged = written.concat(Array.isArray(extra && extra.reviews) ? extra.reviews : []);
+        if (merged.length) start(merged); else rows.hidden = true;
+      });
 
       function start(data) {
       for (var i = data.length - 1; i > 0; i--) {
@@ -1242,6 +1330,75 @@
       viewer.addEventListener('click', function (e) { if (e.target === viewer) viewer.close(); });
       viewer.addEventListener('close', function () { document.documentElement.classList.remove('viewer-open'); hoverCard = null; });
       }
+    })();
+
+    /* Customer review form: opens from the button under the slider and sends to /api/reviews. The
+       review waits for approval in the admin page; nothing is shown until then. */
+    (function () {
+      var btn = document.getElementById('writeReviewBtn');
+      var dlg = document.getElementById('reviewForm');
+      if (!btn || !dlg) return;
+      var form = document.getElementById('rfForm');
+      var done = document.getElementById('rfDone');
+      var err = document.getElementById('rfError');
+      var submit = document.getElementById('rfSubmit');
+      var text = document.getElementById('rfText');
+      var count = document.getElementById('rfCount');
+      var openedAt = 0;
+
+      function reset() { form.hidden = false; done.hidden = true; err.textContent = ''; submit.disabled = false; submit.textContent = 'Send review'; }
+      function fail(message, fieldId) {
+        err.textContent = message;
+        if (fieldId) document.getElementById(fieldId).focus();
+      }
+
+      btn.addEventListener('click', function () {
+        reset();
+        openedAt = Date.now();
+        document.documentElement.classList.add('viewer-open');
+        dlg.showModal();
+        document.getElementById('rfName').focus();
+      });
+      text.addEventListener('input', function () { count.textContent = String(text.value.length); });
+      dlg.querySelector('.viewer-close').addEventListener('click', function () { dlg.close(); });
+      document.getElementById('rfClose').addEventListener('click', function () { dlg.close(); });
+      dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener('close', function () { document.documentElement.classList.remove('viewer-open'); });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var d = new FormData(form);
+        var name = String(d.get('name') || '').trim();
+        var phone = String(d.get('phone') || '').trim();
+        var stars = Number(d.get('stars') || 0);
+        var body = String(d.get('text') || '').trim();
+        err.textContent = '';
+        if (name.length < 2) return fail('Please enter your name.', 'rfName');
+        if (phone.replace(/\D/g, '').length < 10) return fail('Please enter your WhatsApp number, for example 0300 1234567.', 'rfPhone');
+        if (!stars) return fail('Please choose a star rating.');
+        if (body.length < 20) return fail('Please write at least a sentence or two (20 characters).', 'rfText');
+        if (!document.getElementById('rfConsent').checked) return fail('Please tick the box to agree before sending.');
+
+        submit.disabled = true;
+        submit.textContent = 'Sending...';
+        fetch('/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, phone: phone, service: String(d.get('service') || ''), stars: stars, text: body, consent: true, website: String(d.get('website') || ''), t: Date.now() - openedAt })
+        }).then(function (res) {
+          return res.json().catch(function () { return {}; }).then(function (data) {
+            if (!res.ok) throw new Error(data.error || 'Your review could not be sent. Please try again.');
+            form.reset();
+            count.textContent = '0';
+            form.hidden = true;
+            done.hidden = false;
+          });
+        }).catch(function (ex) {
+          err.textContent = ex.message || 'Your review could not be sent. Please try again.';
+          submit.disabled = false;
+          submit.textContent = 'Send review';
+        });
+      });
     })();
 
     /* Featured videos changed from the admin page: new file, thumbnail, title and description. */

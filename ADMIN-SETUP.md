@@ -29,6 +29,29 @@ To change the password later, edit the variable and redeploy. Everyone is signed
   After publishing, allow about half a minute for the live site to show it.
 - **Reset to original** on any project or video puts back what shipped with the site.
 
+## Customer reviews
+
+Under the review slider there is a **Write a review** button. A visitor fills in their name,
+WhatsApp number, the service, a star rating and their review, and ticks a box agreeing to
+have it shown. **Nothing appears on the website until you approve it.**
+
+In the admin page open the **Customer reviews** tab:
+
+- **Waiting** shows new reviews. Each one shows the customer's WhatsApp number with a
+  **Message on WhatsApp** button, useful if you want to talk to someone about a bad review.
+- You can correct spelling, the name, the service or the stars before approving.
+  The customer's original wording is kept (open "See the customer's original wording").
+- **Approve and publish** puts it on the website (allow about a minute). **Reject** keeps it
+  off. **Take off the website** and **Move back to waiting** undo an approval. **Delete**
+  removes it for good.
+- The tab title shows how many are waiting, but there is no email alert yet: check the tab
+  now and then.
+
+Privacy: the WhatsApp number is stored only in a separate **private** storage area
+(`daamin-reviews`) and is shown only on this admin page. It is never sent to the public
+website. A visitor can send at most 4 reviews an hour. The 50 reviews already on the site are
+unchanged and are not edited here.
+
 ## Where things are kept
 
 Uploaded files and your changes live in a Vercel Blob store called `daamin-media`

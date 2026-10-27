@@ -71,6 +71,16 @@
     .bar .status.ok { color: var(--ok); }
     .progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 6px; }
     .progress i { display: block; height: 100%; width: 0; background: var(--orange); transition: width .2s; }
+    .rv.pending { border-left: 4px solid var(--orange); }
+    .rv.approved { border-left: 4px solid var(--ok); }
+    .rv.rejected { border-left: 4px solid #b3b8c6; }
+    .rv-contact { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 12px; margin-bottom: 14px; background: var(--soft); border-radius: 12px; font-size: .9rem; }
+    .rv-grid { display: grid; grid-template-columns: 1.4fr 1.4fr .8fr; gap: 12px; margin-bottom: 12px; }
+    .rv input[type="text"], .rv select, .rv textarea { width: 100%; padding: 10px 12px; border: 1px solid #d5d9e4; border-radius: 10px; background: #fff; color: var(--ink); }
+    .rv textarea { min-height: 96px; resize: vertical; }
+    .rv-orig { margin-top: 10px; font-size: .84rem; color: var(--muted); }
+    .rv-orig p { margin: 6px 0 0; padding: 10px 12px; background: var(--soft); border-radius: 10px; color: var(--ink); }
+    @media (max-width: 700px) { .rv-grid { grid-template-columns: 1fr; } }
     @media (max-width: 560px) { .photos { grid-template-columns: repeat(2, 1fr); } .panel { padding: 14px; } }
   </style>
 </head>
@@ -89,7 +99,8 @@
       defaults: { projects: {}, order: [], videos: {} },
       projects: {}, videos: {},                       /* what is being edited right now */
       saved: '{}',                                    /* last published overrides, as text */
-      busy: '', progress: 0, banner: ''
+      busy: '', progress: 0, banner: '',
+      reviews: [], reviewsLoaded: false, reviewsError: '', reviewsFilter: 'pending', services: [], drafts: {}, working: ''
     };
 
     /* ---------- small helpers ---------- */
@@ -388,20 +399,105 @@
       btn.disabled = !!state.busy || !dirty;
     }
 
+    /* ---------- customer reviews ---------- */
+    async function loadReviews() {
+      try {
+        const data = await api('/api/review-admin');
+        state.reviews = data.submissions || []; state.services = data.services || []; state.reviewsError = '';
+      } catch (e) {
+        if (e.status === 401) { state.view = 'login'; state.msg = 'Your session ended. Please log in again.'; }
+        else state.reviewsError = e.message;
+      }
+      state.reviewsLoaded = true; render();
+    }
+
+    const pendingCount = () => state.reviews.filter((r) => r.status === 'pending').length;
+    const draftOf = (r) => state.drafts[r.id] || (state.drafts[r.id] = { name: r.name, service: r.service, stars: r.stars, text: r.text });
+
+    async function reviewAction(r, action) {
+      if (action === 'delete' && !confirm('Delete this review permanently? This cannot be undone.')) return;
+      const d = draftOf(r);
+      try {
+        state.working = r.id; render();
+        const res = await api('/api/review-admin', { method: 'POST', body: JSON.stringify({ id: r.id, action, edits: action === 'delete' ? undefined : { name: d.name, service: d.service, stars: Number(d.stars), text: d.text } }) });
+        if (res.deleted) state.reviews = state.reviews.filter((x) => x.id !== r.id);
+        else state.reviews = state.reviews.map((x) => (x.id === r.id ? res.submission : x));
+        delete state.drafts[r.id];
+        state.banner = { approve: 'Approved. It is on the website now (allow about a minute).', save: 'Saved.', reject: 'Rejected. It will not be shown.', pending: 'Moved back to waiting.', delete: 'Deleted.' }[action];
+        if (action === 'save' && res.submission && res.submission.status === 'approved') state.banner = 'Saved. The website is updated (allow about a minute).';
+      } catch (e) {
+        if (e.status === 401) { state.view = 'login'; state.msg = 'Your session ended. Please log in again.'; }
+        else state.banner = e.message;
+      }
+      state.working = ''; render();
+    }
+
+    function reviewPanel(r) {
+      const d = draftOf(r), busy = state.working === r.id || !!state.working;
+      const when = new Date(r.createdAt).toLocaleString();
+      const text = h('textarea', { maxlength: 600, 'aria-label': 'Review text' }, d.text);
+      text.addEventListener('input', () => { d.text = text.value; });
+      const name = h('input', { type: 'text', maxlength: 60, value: d.name, 'aria-label': 'Name' });
+      name.addEventListener('input', () => { d.name = name.value; });
+      const service = h('select', { 'aria-label': 'Service' }, state.services.map((s) => h('option', { value: s, selected: s === d.service }, s)));
+      service.addEventListener('change', () => { d.service = service.value; });
+      const stars = h('select', { 'aria-label': 'Stars' }, [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1].map((n) => h('option', { value: n, selected: Number(d.stars) === n }, n + ' stars')));
+      stars.addEventListener('change', () => { d.stars = Number(stars.value); });
+      const act = (label, action, cls) => h('button', { class: 'btn btn-small ' + (cls || 'btn-ghost'), type: 'button', disabled: busy, onclick: () => reviewAction(r, action) }, label);
+      const changed = r.original && (r.original.text !== r.text || r.original.name !== r.name);
+      return h('section', { class: 'panel rv ' + r.status },
+        h('div', { class: 'panel-head' },
+          h('div', {}, h('h2', {}, r.name), h('small', {}, 'Sent ' + when)),
+          h('span', { class: 'count' + (r.status === 'pending' ? ' full' : '') }, { pending: 'Waiting for you', approved: 'On the website', rejected: 'Rejected' }[r.status])),
+        h('div', { class: 'rv-contact' },
+          h('span', {}, 'WhatsApp: ', h('b', {}, '+' + r.phone)),
+          h('a', { class: 'btn btn-ghost btn-small', href: 'https://wa.me/' + encodeURIComponent(r.phone), target: '_blank', rel: 'noopener' }, 'Message on WhatsApp')),
+        h('div', { class: 'rv-grid' },
+          h('div', {}, h('label', {}, 'Name shown'), name),
+          h('div', {}, h('label', {}, 'Service'), service),
+          h('div', {}, h('label', {}, 'Rating'), stars)),
+        h('div', {}, h('label', {}, 'Review (fix spelling here before approving)'), text),
+        changed ? h('details', { class: 'rv-orig' }, h('summary', {}, 'See the customer’s original wording'), h('p', {}, r.original.name + ': ' + r.original.text)) : null,
+        h('div', { class: 'vrow', style: 'margin-top:12px' },
+          r.status !== 'approved' ? act('Approve and publish', 'approve', 'btn-primary') : act('Save changes to website', 'save', 'btn-primary'),
+          r.status === 'pending' ? act('Reject', 'reject') : null,
+          r.status === 'pending' ? act('Save edits only', 'save') : null,
+          r.status === 'approved' ? act('Take off the website', 'pending') : null,
+          r.status === 'rejected' ? act('Move back to waiting', 'pending') : null,
+          act('Delete', 'delete')));
+  }
+
+    function reviewsView() {
+      const f = state.reviewsFilter;
+      const counts = { pending: 0, approved: 0, rejected: 0 };
+      state.reviews.forEach((r) => { counts[r.status] = (counts[r.status] || 0) + 1; });
+      const chip = (key, label) => h('button', { class: 'tab', type: 'button', 'aria-selected': String(f === key), onclick: () => { state.reviewsFilter = key; render(); } }, label + ' (' + counts[key] + ')');
+      const list = state.reviews.filter((r) => r.status === f);
+      return h('div', {},
+        h('p', { class: 'note', style: 'margin:0 0 14px' }, 'Customers write reviews on the website. Nothing is shown until you approve it. WhatsApp numbers appear only on this page, never on the website.'),
+        h('div', { class: 'tabs' }, chip('pending', 'Waiting'), chip('approved', 'On the website'), chip('rejected', 'Rejected')),
+        state.reviewsError ? h('p', { class: 'msg' }, state.reviewsError) : null,
+        !state.reviewsLoaded ? h('p', { class: 'note' }, 'Loading...') : null,
+        state.reviewsLoaded && !state.reviewsError && !list.length ? h('p', { class: 'note' }, f === 'pending' ? 'No reviews are waiting.' : 'Nothing here yet.') : null,
+        list.map(reviewPanel));
+    }
+
     function mainView() {
-      const tab = (key, label) => h('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': String(state.tab === key), onclick: () => { state.tab = key; render(); } }, label);
+      const tab = (key, label) => h('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': String(state.tab === key), onclick: () => { state.tab = key; if (key === 'reviews' && !state.reviewsLoaded) loadReviews(); else render(); } }, label);
       return h('div', {},
         h('header', { class: 'top' }, h('div', { class: 'wrap' },
           h('h1', {}, 'Daamin ', h('span', {}, 'Admin')),
           h('nav', {}, h('a', { href: '../', target: '_blank', rel: 'noopener' }, 'View site'),
             h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: logout }, 'Log out')))),
         h('main', { class: 'wrap' },
-          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Project pictures'), tab('videos', 'Featured videos')),
+          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Project pictures'), tab('videos', 'Featured videos'), tab('reviews', 'Customer reviews' + (pendingCount() ? ' (' + pendingCount() + ' new)' : ''))),
           state.banner ? h('p', { class: 'msg ok', role: 'status', style: 'margin:0 0 14px' }, state.banner) : null,
           state.tab === 'projects'
             ? state.defaults.order.map(projectPanel)
-            : h('div', { class: 'videos' }, Object.keys(state.defaults.videos).map(videoPanel))),
-        barView());
+            : state.tab === 'videos'
+              ? h('div', { class: 'videos' }, Object.keys(state.defaults.videos).map(videoPanel))
+              : reviewsView()),
+        state.tab === 'reviews' ? null : barView());
     }
 
     function render() {
@@ -415,6 +511,7 @@
       const [saved, defaults] = await Promise.all([api('/api/content'), loadDefaults()]);
       state.defaults = defaults; startEditing(saved || {});
       state.view = 'main'; state.msg = ''; state.banner = ''; render();
+      loadReviews(); /* in the background, so the tab can show how many are waiting */
     }
 
     window.addEventListener('beforeunload', (e) => { if (state.view === 'main' && (state.busy || isDirty())) { e.preventDefault(); e.returnValue = ''; } });
