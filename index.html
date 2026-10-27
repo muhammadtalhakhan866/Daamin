@@ -1048,10 +1048,9 @@
       var real;
       try { real = JSON.parse(raw.textContent); } catch (e) { return; }
       if (Array.isArray(real) && real.length) { start(real, false); return; }
-      /* No real reviews yet. Sample ones load only for a layout preview (?demo-reviews, or a local
-         copy), and are labelled as samples so they cannot pass for client feedback. */
-      var preview = /[?&]demo-reviews\b/.test(location.search) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
-      if (!preview || !window.fetch) return;
+      /* No real reviews yet, so show the sample set (each card is tagged "Sample review"). As soon as
+         real reviews are added to #reviewData above, they replace the samples. */
+      if (!window.fetch) return;
       fetch('reviews-demo.json').then(function (r) { return r.json(); }).then(function (list) {
         if (Array.isArray(list) && list.length) start(list, true);
       }).catch(function () {});
