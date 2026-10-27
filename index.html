@@ -229,7 +229,7 @@
     .step h3 { margin: 14px 0 8px; }
     .step p { color: rgba(255,255,255,.68); font-size: .9rem; margin-bottom: 0; }
     /* Client reviews: two rows drifting slowly in opposite directions. */
-    .reviews { background: var(--soft); overflow: hidden; }
+    .reviews { background: #fff; overflow: hidden; }
     .reviews[hidden] { display: none; }
     .review-demo { margin: 18px 0 0; padding: 10px 14px; border-radius: 12px; background: #fff8ed; border: 1px solid #f5dfbe; color: #77501c; font-size: .84rem; font-weight: 700; }
     .review-rows { display: grid; gap: 18px; margin-top: 34px; }
@@ -427,6 +427,16 @@
       </div>
     </section>
 
+    <!-- Hidden until reviewData has real entries. Add them as
+         {"name": "...", "role": "optional", "service": "Construction", "text": "..."} -->
+    <section class="section reviews" id="reviews" hidden>
+      <div class="container">
+        <div class="section-head"><div><p class="eyebrow">Client reviews</p><h2>What our clients say.</h2><p class="lead">Experiences across our real estate, construction and development services.</p></div></div>
+      </div>
+      <div class="review-rows" id="reviewRows" role="region" aria-label="Client reviews"></div>
+    </section>
+    <script type="application/json" id="reviewData">[]</script>
+
     <section class="section videos" id="videos">
       <div class="container">
         <div class="section-head">
@@ -580,16 +590,6 @@
         </div>
       </div>
     </section>
-
-    <!-- Hidden until reviewData has real entries. Add them as
-         {"name": "...", "role": "optional", "service": "Construction", "text": "..."} -->
-    <section class="section reviews" id="reviews" hidden>
-      <div class="container">
-        <div class="section-head"><div><p class="eyebrow">Client reviews</p><h2>What our clients say.</h2><p class="lead">Experiences across our real estate, construction and development services.</p></div></div>
-      </div>
-      <div class="review-rows" id="reviewRows" role="region" aria-label="Client reviews"></div>
-    </section>
-    <script type="application/json" id="reviewData">[]</script>
 
     <section class="section" id="gallery">
       <div class="container">
