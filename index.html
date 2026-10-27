@@ -249,9 +249,6 @@
     .review-who { flex: none; margin: 0; margin-top: auto; display: flex; align-items: baseline; gap: 6px; color: var(--navy); font-weight: 800; font-size: .82rem; white-space: nowrap; }
     .review-who span { color: var(--muted); font-weight: 600; font-size: .74rem; }
     .review-who span:before { content: "\00b7"; margin-right: 6px; }
-    .review-who .review-more { display: none; margin-left: auto; color: #b9441a; font-weight: 800; font-size: .72rem; }
-    .review-who .review-more:before { content: none; }
-    .review-card.is-clipped .review-more { display: inline; }
     /* The full review, in the same crystal dialog style as the project viewer. */
     .review-viewer { width: min(660px, calc(100vw - 32px)); }
     .review-shell { display: block; padding: 34px 36px 30px; }
@@ -1168,11 +1165,6 @@
         who.className = 'review-who';
         who.textContent = review.name;
         if (review.role) { var role = document.createElement('span'); role.textContent = review.role; who.appendChild(role); }
-        var more = document.createElement('span');
-        more.className = 'review-more';
-        more.setAttribute('aria-hidden', 'true');
-        more.textContent = 'Read full review';
-        who.appendChild(more);
         el.appendChild(who);
         return el;
       }
@@ -1198,20 +1190,8 @@
         track.style.setProperty('--drift', Math.round((track.scrollWidth / 2) / speed) + 's');
       });
 
-      /* A card shows a fixed amount of text. When a review is longer, flag it so the card can say
-         "Read full review"; the popup below always shows all of it. */
-      function markClipped() {
-        Array.prototype.forEach.call(rows.querySelectorAll('.review-card'), function (c) {
-          var t = c.querySelector('.review-text');
-          c.classList.toggle('is-clipped', t.scrollHeight > t.clientHeight + 1);
-        });
-      }
-      markClipped();
-      window.addEventListener('load', markClipped);
-      var clipTimer;
-      window.addEventListener('resize', function () { clearTimeout(clipTimer); clipTimer = setTimeout(markClipped, 150); });
-
-      /* The full review opens in a crystal dialog on a click, Enter, or two seconds of hovering. */
+      /* A card shows a fixed amount of text; the popup below always shows all of it.
+         The full review opens in a crystal dialog on a click, Enter, or two seconds of hovering. */
       var viewer = document.getElementById('reviewViewer');
       if (!viewer) return;
       var vTag = viewer.querySelector('.review-full-tag');
