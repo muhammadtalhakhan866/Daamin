@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Daamin Admin</title>
+  <link rel="icon" type="image/png" href="../images/favicon.png">
+  <style>
+    :root { --orange: #ee652d; --navy: #121942; --ink: #172033; --muted: #667085; --line: #e3e6ee; --soft: #f5f6fa; --ok: #1f8f55; --bad: #c0392b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; color: var(--ink); background: var(--soft); line-height: 1.5; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .5; }
+    :focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+    .wrap { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border: 1px solid transparent; border-radius: 999px; font-weight: 700; font-size: .9rem; }
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #d95420; }
+    .btn-ghost { background: #fff; color: var(--navy); border-color: var(--line); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--navy); }
+    .btn-small { padding: 6px 12px; font-size: .8rem; }
+    header.top { background: var(--navy); color: #fff; }
+    header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; }
+    header.top h1 { margin: 0; font-size: 1.05rem; letter-spacing: .02em; }
+    header.top h1 span { color: #ffb08a; font-weight: 600; }
+    header.top nav { display: flex; gap: 10px; align-items: center; }
+    header.top a { color: #fff; font-size: .88rem; }
+    .tabs { display: flex; gap: 8px; margin: 22px 0 18px; }
+    .tab { padding: 9px 18px; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--navy); font-weight: 700; }
+    .tab[aria-selected="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .login { width: min(400px, calc(100% - 32px)); margin: 12vh auto 0; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 32px; box-shadow: 0 18px 50px rgba(18,25,66,.1); }
+    .login img { display: block; height: 64px; margin: 0 auto 18px; }
+    .login h1 { margin: 0 0 4px; text-align: center; font-size: 1.3rem; color: var(--navy); }
+    .login p.sub { margin: 0 0 22px; text-align: center; color: var(--muted); font-size: .9rem; }
+    label { display: block; margin-bottom: 6px; font-size: .82rem; font-weight: 700; color: var(--navy); }
+    input[type="password"], input[type="text"], textarea { width: 100%; padding: 11px 13px; border: 1px solid #d5d9e4; border-radius: 11px; background: #fff; color: var(--ink); }
+    textarea { min-height: 70px; resize: vertical; }
+    .msg { margin: 12px 0 0; font-size: .86rem; color: var(--bad); }
+    .msg.ok { color: var(--ok); }
+    .panel { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-bottom: 18px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .panel-head h2 { margin: 0; font-size: 1.1rem; color: var(--navy); }
+    .panel-head small { color: var(--muted); font-weight: 600; }
+    .count { font-size: .82rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--navy); }
+    .count.full { background: #fff0e9; color: #b9441a; }
+    .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .photo { position: relative; border-radius: 12px; overflow: hidden; background: #dfe3ee; aspect-ratio: 3 / 4; border: 1px solid var(--line); }
+    .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo .badge { position: absolute; top: 8px; left: 8px; padding: 3px 9px; border-radius: 999px; background: var(--orange); color: #fff; font-size: .7rem; font-weight: 800; }
+    .photo .tools { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: 4px; padding: 18px 6px 6px; background: linear-gradient(transparent, rgba(8,12,38,.8)); }
+    .tool { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.92); color: var(--navy); font-size: .9rem; font-weight: 800; }
+    .tool:hover:not(:disabled) { background: var(--orange); color: #fff; }
+    .add { display: grid; place-items: center; aspect-ratio: 3 / 4; border: 2px dashed #c7cddd; border-radius: 12px; color: var(--muted); font-weight: 700; text-align: center; padding: 8px; cursor: pointer; background: #fafbfe; }
+    .add:hover { border-color: var(--orange); color: var(--orange); }
+    .add input { display: none; }
+    .videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+    .vcard { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    .vcard h2 { margin: 0; font-size: 1rem; color: var(--navy); }
+    .vframe { aspect-ratio: 9 / 16; max-height: 380px; width: 100%; background: #0d1335; border-radius: 12px; overflow: hidden; }
+    .vframe video { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
+    .vrow { display: flex; gap: 8px; flex-wrap: wrap; }
+    .thumbline { display: flex; align-items: center; gap: 10px; font-size: .8rem; color: var(--muted); }
+    .thumbline img { width: 42px; height: 74px; object-fit: cover; border-radius: 6px; border: 1px solid var(--line); }
+    .note { font-size: .8rem; color: var(--muted); margin: 0; }
+    .bar { position: sticky; bottom: 0; z-index: 5; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-top: 1px solid var(--line); }
+    .bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; flex-wrap: wrap; }
+    .bar .status { font-size: .88rem; font-weight: 700; color: var(--muted); }
+    .bar .status.dirty { color: #b9441a; }
+    .bar .status.ok { color: var(--ok); }
+    .progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+    .progress i { display: block; height: 100%; width: 0; background: var(--orange); transition: width .2s; }
+    @media (max-width: 560px) { .photos { grid-template-columns: repeat(2, 1fr); } .panel { padding: 14px; } }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { upload } from './blob-client.js';
+
+    const MAX = 10;                                   /* pictures per project album */
+    const WRITE = { 'X-Requested-With': 'daamin-admin' };
+    const app = document.getElementById('app');
+
+    const state = {
+      view: 'login', tab: 'projects', msg: '', configured: true,
+      defaults: { projects: {}, order: [], videos: {} },
+      projects: {}, videos: {},                       /* what is being edited right now */
+      saved: '{}',                                    /* last published overrides, as text */
+      busy: '', progress: 0, banner: ''
+    };
+
+    /* ---------- small helpers ---------- */
+    function h(tag, props, ...kids) {
+      const node = document.createElement(tag);
+      for (const [k, v] of Object.entries(props || {})) {
+        if (k === 'class') node.className = v;
+        else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+        else if (v === true) node.setAttribute(k, '');
+        else if (v !== false && v != null) node.setAttribute(k, v);
+      }
+      for (const kid of kids.flat()) if (kid != null && kid !== false) node.append(kid.nodeType ? kid : document.createTextNode(kid));
+      return node;
+    }
+
+    async function api(path, opts = {}) {
+      const method = opts.method || 'GET';
+      const headers = Object.assign({}, method === 'GET' ? {} : WRITE, opts.body ? { 'Content-Type': 'application/json' } : {});
+      const res = await fetch(path, { method, headers, body: opts.body, credentials: 'same-origin', cache: 'no-store' });
+      let data = null;
+      try { data = await res.json(); } catch (e) { /* not json */ }
+      if (!res.ok) { const err = new Error((data && data.error) || 'Something went wrong (' + res.status + ').'); err.status = res.status; throw err; }
+      return data;
+    }
+
+    const clone = (o) => JSON.parse(JSON.stringify(o));
+    /* Built-in pictures are stored as paths from the site root (images/...); this page lives in
+       /admin/, so previews need them anchored to the root. Uploaded ones are full addresses already. */
+    const shown = (u) => (/^https?:\/\//.test(u) ? u : '/' + String(u).replace(/^\/+/, ''));
+    const sizeText = (b) => (b / 1048576).toFixed(b > 10485760 ? 0 : 1) + ' MB';
+
+    /* ---------- what the site ships with ---------- */
+    async function loadDefaults() {
+      const html = await (await fetch('../', { cache: 'no-cache' })).text();
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const out = { projects: {}, order: [], videos: {} };
+      doc.querySelectorAll('.project-card[data-id]').forEach((card) => {
+        const id = card.dataset.id;
+        const large = (card.dataset.photos || '').split('|').filter(Boolean);
+        out.order.push(id);
+        out.projects[id] = {
+          name: card.querySelector('.project-name').textContent,
+          loc: card.querySelector('.project-location').textContent,
+          photos: large.map((l) => ({ l, s: l.replace(/\.jpg$/, '-s.jpg') }))
+        };
+      });
+      doc.querySelectorAll('.video-card[data-reel]').forEach((card) => {
+        out.videos[card.dataset.reel] = {
+          src: card.querySelector('source').getAttribute('src'),
+          poster: card.querySelector('.video-poster').getAttribute('src'),
+          title: card.querySelector('.video-body h3').textContent,
+          desc: card.querySelector('.video-body p').textContent
+        };
+      });
+      return out;
+    }
+
+    function startEditing(saved) {
+      state.projects = {}; state.videos = {};
+      for (const id of state.defaults.order) {
+        const own = saved.projects && saved.projects[id];
+        state.projects[id] = clone(own ? own.photos : state.defaults.projects[id].photos);
+      }
+      for (const slot of Object.keys(state.defaults.videos)) {
+        const own = saved.videos && saved.videos[slot];
+        state.videos[slot] = clone(own || state.defaults.videos[slot]);
+      }
+      state.saved = JSON.stringify(overrides());
+    }
+
+    /* Only what differs from the built-in site is stored. */
+    function overrides() {
+      const out = { projects: {}, videos: {} };
+      for (const id of state.defaults.order) {
+        const now = state.projects[id].map((p) => p.l).join('|');
+        const base = state.defaults.projects[id].photos.map((p) => p.l).join('|');
+        if (now !== base) out.projects[id] = { photos: clone(state.projects[id]) };
+      }
+      for (const slot of Object.keys(state.defaults.videos)) {
+        const a = state.videos[slot], b = state.defaults.videos[slot];
+        if (a.src !== b.src || a.poster !== b.poster || a.title !== b.title || a.desc !== b.desc) out.videos[slot] = clone(a);
+      }
+      return out;
+    }
+    const isDirty = () => JSON.stringify(overrides()) !== state.saved;
+
+    /* ---------- pictures ---------- */
+    async function resizeTo(file, longSide, quality) {
+      let bitmap;
+      try { bitmap = await createImageBitmap(file); } catch (e) { throw new Error('"' + file.name + '" could not be read. Please use JPG, PNG or WebP.'); }
+      const scale = Math.min(1, longSide / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      if (bitmap.close) bitmap.close();
+      return new Promise((ok, no) => canvas.toBlob((b) => (b ? ok(b) : no(new Error('Could not process "' + file.name + '".'))), 'image/jpeg', quality));
+    }
+
+    function pushUpload(path, blob, extra) {
+      return upload(path, blob, Object.assign({
+        access: 'public', handleUploadUrl: '/api/upload', headers: WRITE,
+        contentType: blob.type || undefined,
+        onUploadProgress: (e) => { state.progress = e.percentage; paintBar(); }
+      }, extra || {}));
+    }
+
+    async function addPhotos(id, files) {
+      const room = MAX - state.projects[id].length;
+      const list = Array.from(files).slice(0, room);
+      if (!list.length) return;
+      const skipped = files.length - list.length;
+      try {
+        for (let i = 0; i < list.length; i++) {
+          state.busy = 'Uploading picture ' + (i + 1) + ' of ' + list.length + '...'; state.progress = 0; paintBar();
+          const stamp = Date.now() + '-' + i;
+          const large = await resizeTo(list[i], 1600, 0.82);
+          const small = await resizeTo(list[i], 720, 0.78);
+          const l = await pushUpload('projects/' + id + '/' + stamp + '.jpg', large, { contentType: 'image/jpeg' });
+          const s = await pushUpload('projects/' + id + '/' + stamp + '-s.jpg', small, { contentType: 'image/jpeg' });
+          state.projects[id].push({ l: l.url, s: s.url });
+          render();
+        }
+        state.banner = skipped > 0 ? 'Only ' + room + ' fit (the limit is ' + MAX + '); ' + skipped + ' were left out.' : '';
+      } catch (e) { state.banner = e.message; }
+      state.busy = ''; render();
+    }
+
+    function movePhoto(id, i, by) {
+      const list = state.projects[id], j = i + by;
+      if (j < 0 || j >= list.length) return;
+      [list[i], list[j]] = [list[j], list[i]];
+      render();
+    }
+    function makeCover(id, i) { const [p] = state.projects[id].splice(i, 1); state.projects[id].unshift(p); render(); }
+    function removePhoto(id, i) {
+      if (state.projects[id].length < 2) { state.banner = 'A project needs at least one picture. Add another before removing this one.'; render(); return; }
+      state.projects[id].splice(i, 1); render();
+    }
+
+    /* ---------- videos ---------- */
+    function frameFrom(file) {
+      return new Promise((ok, no) => {
+        const url = URL.createObjectURL(file);
+        const v = document.createElement('video');
+        v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = url;
+        const done = (fn, val) => { URL.revokeObjectURL(url); fn(val); };
+        v.addEventListener('error', () => done(no, new Error('no frame')));
+        v.addEventListener('loadeddata', () => { v.currentTime = Math.min(1, (v.duration || 2) / 4); });
+        v.addEventListener('seeked', () => {
+          const scale = Math.min(1, 720 / v.videoWidth);
+          const c = document.createElement('canvas');
+          c.width = Math.round(v.videoWidth * scale); c.height = Math.round(v.videoHeight * scale);
+          c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+          c.toBlob((b) => (b ? done(ok, b) : done(no, new Error('no frame'))), 'image/jpeg', 0.82);
+        }, { once: true });
+      });
+    }
+
+    async function replaceVideo(slot, file) {
+      try {
+        state.busy = 'Uploading video (' + sizeText(file.size) + ')...'; state.progress = 0; paintBar();
+        const ext = (file.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4';
+        const result = await pushUpload('videos/slot-' + slot + '.' + ext, file, { multipart: file.size > 8 * 1048576, contentType: file.type || 'video/mp4' });
+        state.videos[slot].src = result.url;
+        try {
+          state.busy = 'Making a thumbnail from the video...'; paintBar();
+          const frame = await frameFrom(file);
+          const thumb = await pushUpload('thumbs/slot-' + slot + '.jpg', frame, { contentType: 'image/jpeg' });
+          state.videos[slot].poster = thumb.url;
+          state.banner = 'Video uploaded and a thumbnail was taken from it. You can replace the thumbnail with your own picture.';
+        } catch (e) {
+          state.banner = 'Video uploaded, but a thumbnail could not be taken from it. Please upload a thumbnail picture.';
+        }
+      } catch (e) { state.banner = e.message; }
+      state.busy = ''; render();
+    }
+
+    async function replaceThumb(slot, file) {
+      try {
+        state.busy = 'Uploading thumbnail...'; state.progress = 0; paintBar();
+        const blob = await resizeTo(file, 1280, 0.84);
+        const r = await pushUpload('thumbs/slot-' + slot + '.jpg', blob, { contentType: 'image/jpeg' });
+        state.videos[slot].poster = r.url; state.banner = '';
+      } catch (e) { state.banner = e.message; }
+      state.busy = ''; render();
+    }
+
+    /* ---------- publishing ---------- */
+    async function publish() {
+      try {
+        state.busy = 'Publishing...'; state.progress = 0; paintBar();
+        const body = overrides();
+        const saved = await api('/api/content', { method: 'PUT', body: JSON.stringify(body) });
+        startEditing(saved);
+        state.banner ='Published. The live site shows these changes within about a minute.';
+      } catch (e) {
+        if (e.status === 401) { state.view = 'login'; state.msg = 'Your session ended. Please log in again. Your changes are still here; they were not lost.'; }
+        else state.banner = e.message;
+      }
+      state.busy = ''; render();
+    }
+
+    async function logout() {
+      try { await api('/api/logout', { method: 'POST' }); } catch (e) { /* already out */ }
+      state.view = 'login'; state.msg = ''; render();
+    }
+
+    /* ---------- screens ---------- */
+    function loginView() {
+      const input = h('input', { type: 'password', id: 'pw', autocomplete: 'current-password', required: true, 'aria-label': 'Admin password' });
+      const msg = h('p', { class: 'msg', role: 'alert' }, state.msg || (state.configured ? '' : 'The admin password has not been set up yet. Add ADMIN_PASSWORD in the Vercel project settings, then redeploy.'));
+      const btn = h('button', { class: 'btn btn-primary', type: 'submit', style: 'width:100%;margin-top:16px' }, 'Log in');
+      const form = h('form', { class: 'login' },
+        h('img', { src: '../images/daamin-logo.png', alt: 'Daamin Estate & Builder' }),
+        h('h1', {}, 'Admin login'),
+        h('p', { class: 'sub' }, 'Change project pictures and the featured videos.'),
+        h('label', { for: 'pw' }, 'Password'), input, msg, btn);
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault(); btn.disabled = true; msg.textContent = '';
+        try {
+          await api('/api/login', { method: 'POST', body: JSON.stringify({ password: input.value }) });
+          await enter();
+        } catch (err) { msg.textContent = err.message; btn.disabled = false; input.select(); }
+      });
+      setTimeout(() => input.focus(), 0);
+      return form;
+    }
+
+    function photoTile(id, p, i, count) {
+      const dis = !!state.busy;
+      return h('div', { class: 'photo' },
+        h('img', { src: shown(p.s), alt: 'Picture ' + (i + 1), loading: 'lazy' }),
+        i === 0 ? h('span', { class: 'badge' }, 'Cover') : null,
+        h('div', { class: 'tools' },
+          h('button', { class: 'tool', type: 'button', 'aria-label': 'Move earlier', disabled: dis || i === 0, onclick: () => movePhoto(id, i, -1) }, '←'),
+          h('button', { class: 'tool', type: 'button', 'aria-label': 'Move later', disabled: dis || i === count - 1, onclick: () => movePhoto(id, i, 1) }, '→'),
+          i > 0 ? h('button', { class: 'tool', type: 'button', 'aria-label': 'Make this the cover', title: 'Make cover', disabled: dis, onclick: () => makeCover(id, i) }, '★') : null,
+          h('button', { class: 'tool', type: 'button', 'aria-label': 'Remove picture', title: 'Remove', disabled: dis, onclick: () => removePhoto(id, i) }, '×')));
+    }
+
+    function projectPanel(id) {
+      const meta = state.defaults.projects[id], list = state.projects[id];
+      const changed = list.map((p) => p.l).join('|') !== meta.photos.map((p) => p.l).join('|');
+      const picker = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true, disabled: !!state.busy });
+      picker.addEventListener('change', () => { const f = Array.from(picker.files); picker.value = ''; addPhotos(id, f); });
+      return h('section', { class: 'panel' },
+        h('div', { class: 'panel-head' },
+          h('div', {}, h('h2', {}, meta.name), h('small', {}, meta.loc)),
+          h('div', { class: 'vrow' },
+            h('span', { class: 'count' + (list.length >= MAX ? ' full' : '') }, list.length + ' / ' + MAX + ' pictures'),
+            changed ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', disabled: !!state.busy, onclick: () => { state.projects[id] = clone(meta.photos); render(); } }, 'Reset to original') : null)),
+        h('div', { class: 'photos' },
+          list.map((p, i) => photoTile(id, p, i, list.length)),
+          list.length < MAX ? h('label', { class: 'add' }, h('span', {}, '+ Add pictures', h('br'), h('small', {}, (MAX - list.length) + ' more allowed')), picker) : null));
+    }
+
+    function videoPanel(slot) {
+      const v = state.videos[slot], def = state.defaults.videos[slot];
+      const changed = ['src', 'poster', 'title', 'desc'].some((k) => v[k] !== def[k]);
+      const vf = h('input', { type: 'file', accept: 'video/mp4,video/webm,video/quicktime', style: 'display:none' });
+      vf.addEventListener('change', () => { const f = vf.files[0]; vf.value = ''; if (f) replaceVideo(slot, f); });
+      const tf = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', style: 'display:none' });
+      tf.addEventListener('change', () => { const f = tf.files[0]; tf.value = ''; if (f) replaceThumb(slot, f); });
+      const title = h('input', { type: 'text', id: 'vt' + slot, maxlength: 80, value: v.title });
+      title.addEventListener('input', () => { v.title = title.value; paintBar(); });
+      const desc = h('textarea', { id: 'vd' + slot, maxlength: 160 }, v.desc);
+      desc.addEventListener('input', () => { v.desc = desc.value; paintBar(); });
+      return h('section', { class: 'vcard' },
+        h('h2', {}, 'Video ' + slot),
+        h('div', { class: 'vframe' }, h('video', { src: shown(v.src), poster: shown(v.poster), controls: true, muted: true, playsinline: true, preload: 'metadata' })),
+        h('div', { class: 'vrow' },
+          h('button', { class: 'btn btn-primary btn-small', type: 'button', disabled: !!state.busy, onclick: () => vf.click() }, 'Replace video'),
+          h('button', { class: 'btn btn-ghost btn-small', type: 'button', disabled: !!state.busy, onclick: () => tf.click() }, 'Replace thumbnail'),
+          changed ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', disabled: !!state.busy, onclick: () => { state.videos[slot] = clone(def); render(); } }, 'Reset') : null, vf, tf),
+        h('div', { class: 'thumbline' }, h('img', { src: shown(v.poster), alt: 'Thumbnail' }), h('span', {}, 'Thumbnail shown before the video plays')),
+        h('div', {}, h('label', { for: 'vt' + slot }, 'Title'), title),
+        h('div', {}, h('label', { for: 'vd' + slot }, 'Description'), desc),
+        h('p', { class: 'note' }, 'Tip: keep videos under about 70 MB. Larger ones are slow to start on phones.'));
+    }
+
+    function barView() {
+      const status = h('span', { class: 'status', id: 'barStatus' });
+      const prog = h('div', { class: 'progress', id: 'barProg', hidden: true }, h('i'));
+      const btn = h('button', { class: 'btn btn-primary', id: 'pubBtn', type: 'button', onclick: publish }, 'Publish changes');
+      return h('div', { class: 'bar' }, h('div', { class: 'wrap' }, h('div', { style: 'flex:1;min-width:200px' }, status, prog), btn));
+    }
+
+    function paintBar() {
+      const status = document.getElementById('barStatus'), btn = document.getElementById('pubBtn'), prog = document.getElementById('barProg');
+      if (!status) return;
+      const dirty = isDirty();
+      status.className = 'status' + (state.busy ? '' : dirty ? ' dirty' : '');
+      status.textContent = state.busy || (dirty ? 'You have unpublished changes.' : 'Everything shown here is live.');
+      prog.hidden = !state.busy || !state.progress;
+      prog.firstChild.style.width = Math.round(state.progress || 0) + '%';
+      btn.disabled = !!state.busy || !dirty;
+    }
+
+    function mainView() {
+      const tab = (key, label) => h('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': String(state.tab === key), onclick: () => { state.tab = key; render(); } }, label);
+      return h('div', {},
+        h('header', { class: 'top' }, h('div', { class: 'wrap' },
+          h('h1', {}, 'Daamin ', h('span', {}, 'Admin')),
+          h('nav', {}, h('a', { href: '../', target: '_blank', rel: 'noopener' }, 'View site'),
+            h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: logout }, 'Log out')))),
+        h('main', { class: 'wrap' },
+          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Project pictures'), tab('videos', 'Featured videos')),
+          state.banner ? h('p', { class: 'msg ok', role: 'status', style: 'margin:0 0 14px' }, state.banner) : null,
+          state.tab === 'projects'
+            ? state.defaults.order.map(projectPanel)
+            : h('div', { class: 'videos' }, Object.keys(state.defaults.videos).map(videoPanel))),
+        barView());
+    }
+
+    function render() {
+      const keepY = window.scrollY;
+      app.replaceChildren(state.view === 'login' ? loginView() : mainView());
+      if (state.view !== 'login') { paintBar(); window.scrollTo(0, keepY); }
+    }
+
+    /* ---------- start ---------- */
+    async function enter() {
+      const [saved, defaults] = await Promise.all([api('/api/content'), loadDefaults()]);
+      state.defaults = defaults; startEditing(saved || {});
+      state.view = 'main'; state.msg = ''; state.banner = ''; render();
+    }
+
+    window.addEventListener('beforeunload', (e) => { if (state.view === 'main' && (state.busy || isDirty())) { e.preventDefault(); e.returnValue = ''; } });
+
+    (async () => {
+      try {
+        const s = await api('/api/session');
+        state.configured = s.configured;
+        if (s.admin) { await enter(); return; }
+      } catch (e) { state.msg = 'Could not reach the server.'; }
+      render();
+    })();
+  </script>
+</body>
+</html>

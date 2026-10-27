@@ -1,0 +1,36 @@
+# Admin page: one-time setup
+
+The admin page lives at **https://daamin.vercel.app/admin/** (it is not linked from the site).
+From there you can change the pictures in each project album (up to 10 each) and the three
+featured videos, their thumbnails, titles and descriptions.
+
+## Before it will let you in: set the password (once)
+
+The password is **not** stored in the code. It is a setting in Vercel, so only you know it.
+
+1. Open the Daamin project on vercel.com, then **Settings > Environment Variables**.
+2. Add a variable named `ADMIN_PASSWORD`. Use a long, unique password (12+ characters).
+   Tick **Production** (and Preview if you like).
+3. **Redeploy** (Deployments > the latest one > Redeploy). Settings only apply to new deployments.
+
+Until this is done the login page says the password has not been set up.
+
+To change the password later, edit the variable and redeploy. Everyone is signed out when it changes.
+
+## Using it
+
+- **Project pictures:** add pictures (JPG, PNG or WebP; they are resized in your browser first),
+  reorder with the arrows, make one the cover with the star, remove with the cross.
+  Each album holds at most 10. The first picture is the cover shown on the project tile.
+- **Featured videos:** replace a video and a thumbnail is taken from it automatically
+  (you can upload your own thumbnail instead). Edit the title and description underneath.
+  Keep videos under about 70 MB so they start quickly on phones.
+- Nothing changes on the site until you press **Publish changes**.
+  After publishing, allow about half a minute for the live site to show it.
+- **Reset to original** on any project or video puts back what shipped with the site.
+
+## Where things are kept
+
+Uploaded files and your changes live in a Vercel Blob store called `daamin-media`
+(a free allowance applies on the Hobby plan; see Vercel > Storage for usage).
+Anything you remove or replace is deleted from storage automatically.

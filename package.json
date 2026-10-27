@@ -1,0 +1,9 @@
+{
+  "name": "daamin-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Daamin Estate & Builder website with a small admin API for pictures and videos.",
+  "dependencies": {
+    "@vercel/blob": "2.8.2"
+  }
+}
