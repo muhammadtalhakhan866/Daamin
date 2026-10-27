@@ -231,6 +231,7 @@
     /* Client reviews: two rows drifting slowly in opposite directions. */
     .reviews { background: var(--soft); overflow: hidden; }
     .reviews[hidden] { display: none; }
+    .review-demo { margin: 18px 0 0; padding: 10px 14px; border-radius: 12px; background: #fff8ed; border: 1px solid #f5dfbe; color: #77501c; font-size: .84rem; font-weight: 700; }
     .review-rows { display: grid; gap: 18px; margin-top: 34px; }
     .review-row { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
     .review-track { display: flex; gap: 18px; width: max-content; animation: reviewDrift var(--drift, 80s) linear infinite; }
@@ -1013,10 +1014,24 @@
       var rows = document.getElementById('reviewRows');
       var raw = document.getElementById('reviewData');
       if (!section || !rows || !raw) return;
-      var data;
-      try { data = JSON.parse(raw.textContent); } catch (e) { return; }
-      if (!Array.isArray(data) || !data.length) return;
+      var real;
+      try { real = JSON.parse(raw.textContent); } catch (e) { return; }
+      if (Array.isArray(real) && real.length) { start(real, false); return; }
+      /* No real reviews yet. Sample ones load only for a layout preview (?demo-reviews, or a local
+         copy), and are labelled as samples so they cannot pass for client feedback. */
+      var preview = /[?&]demo-reviews\b/.test(location.search) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+      if (!preview || !window.fetch) return;
+      fetch('reviews-demo.json').then(function (r) { return r.json(); }).then(function (list) {
+        if (Array.isArray(list) && list.length) start(list, true);
+      }).catch(function () {});
 
+      function start(data, isDemo) {
+      if (isDemo) {
+        var label = document.createElement('p');
+        label.className = 'review-demo';
+        label.textContent = 'Sample reviews for layout preview only. These are not real client reviews.';
+        section.querySelector('.container').appendChild(label);
+      }
       for (var i = data.length - 1; i > 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
         var t = data[i]; data[i] = data[j]; data[j] = t;
@@ -1064,6 +1079,7 @@
         var speed = r % 2 ? 17 : 21; /* px per second: slow enough to read; measured drift runs ~1.2x this */
         track.style.setProperty('--drift', Math.round((track.scrollWidth / 2) / speed) + 's');
       });
+      }
     })();
 
     document.getElementById('year').textContent = new Date().getFullYear();
