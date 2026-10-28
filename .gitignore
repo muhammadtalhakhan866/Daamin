@@ -15,3 +15,6 @@ Desktop.ini
 .DS_Store
 .idea/
 .vscode/
+
+# Promo videos are for sharing, never for the website
+promo/
