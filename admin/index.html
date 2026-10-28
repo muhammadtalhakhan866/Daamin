@@ -441,7 +441,7 @@
       name.addEventListener('input', () => { d.name = name.value; });
       const service = h('select', { 'aria-label': 'Service' }, state.services.map((s) => h('option', { value: s, selected: s === d.service }, s)));
       service.addEventListener('change', () => { d.service = service.value; });
-      const stars = h('select', { 'aria-label': 'Stars' }, [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1].map((n) => h('option', { value: n, selected: Number(d.stars) === n }, n + ' stars')));
+      const stars = h('select', { 'aria-label': 'Stars' }, [5, 4.5, 4, 3.5, 3, 2.5, 2, 1.5, 1, 0.5].map((n) => h('option', { value: n, selected: Number(d.stars) === n }, n + ' stars')));
       stars.addEventListener('change', () => { d.stars = Number(stars.value); });
       const act = (label, action, cls) => h('button', { class: 'btn btn-small ' + (cls || 'btn-ghost'), type: 'button', disabled: busy, onclick: () => reviewAction(r, action) }, label);
       const changed = r.original && (r.original.text !== r.text || r.original.name !== r.name);

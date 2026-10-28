@@ -29,7 +29,7 @@ function cleanVisible(input, strict) {
   if (!/^[\p{L}\p{M}][\p{L}\p{M}\s.'\-]{1,59}$/u.test(name)) throw new Invalid('Please enter your name (letters only, at least 2).');
   const service = SERVICES.includes(input.service) ? input.service : 'Other';
   const stars = Math.round(Number(input.stars) * 2) / 2;
-  if (!(stars >= 1 && stars <= 5)) throw new Invalid('Please choose a star rating.');
+  if (!(stars >= 0.5 && stars <= 5)) throw new Invalid('Please choose a star rating.');
   const text = clean(input.text, 600);
   if (text.length < (strict ? 20 : 1)) throw new Invalid(strict ? 'Please write at least a sentence or two (20 characters).' : 'The review cannot be empty.');
   if (/https?:\/\/|www\./i.test(text)) throw new Invalid('Please leave web links out of your review.');

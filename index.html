@@ -229,7 +229,7 @@
     .step h3 { margin: 14px 0 8px; }
     .step p { color: rgba(255,255,255,.68); font-size: .9rem; margin-bottom: 0; }
     /* Client reviews: two rows drifting slowly in opposite directions. */
-    .reviews { background: #fff; overflow: hidden; }
+    .reviews { background: #fdf8f4; overflow: hidden; }
     .reviews[hidden] { display: none; }
     .review-rows[hidden] { display: none; }
     .review-rows { display: grid; gap: 18px; margin-top: 34px; }
@@ -287,12 +287,18 @@
     .rf-field input::placeholder, .rf-field textarea::placeholder { color: rgba(255,255,255,.42); }
     .rf-field input:focus, .rf-field select:focus, .rf-field textarea:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(238,101,45,.25); }
     .rf-note { margin: 6px 0 0; font-size: .76rem; color: rgba(255,255,255,.6); }
-    .rf-starrow { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 2px; }
-    .rf-starrow input { position: absolute; opacity: 0; pointer-events: none; }
-    .rf-starrow label { margin: 0; padding: 0 4px; font-size: 2rem; line-height: 1; color: rgba(255,255,255,.28); cursor: pointer; transition: color .15s, transform .15s; }
-    .rf-starrow input:checked ~ label, .rf-starrow label:hover, .rf-starrow label:hover ~ label { color: #f0a500; }
-    .rf-starrow label:hover { transform: scale(1.12); }
-    .rf-starrow input:focus-visible + label { outline: 2px solid var(--orange); outline-offset: 2px; border-radius: 6px; }
+    /* Half stars: each star has a left half and a right half you can pick. The gold fill is drawn
+       from a --fill percentage that the script sets, so 4.5 shows four and a half stars. */
+    .rf-starrow { display: flex; gap: 4px; }
+    .rf-star { position: relative; display: inline-block; width: 2.6rem; height: 2.6rem; }
+    @media (max-width: 760px) { .rf-star { width: 2.9rem; height: 2.9rem; } .rf-star .rf-glyph { font-size: 2.5rem; } }
+    .rf-star input { position: absolute; opacity: 0; pointer-events: none; }
+    .rf-star .rf-glyph { position: absolute; inset: 0; display: grid; place-items: center; font-size: 2.1rem; line-height: 1; color: transparent;
+      background: linear-gradient(90deg, #f0a500 var(--fill, 0%), rgba(255,255,255,.28) var(--fill, 0%)); -webkit-background-clip: text; background-clip: text; pointer-events: none; }
+    .rf-star label { position: absolute; top: 0; bottom: 0; margin: 0; padding: 0; z-index: 1; cursor: pointer; }
+    .rf-star .rf-h { left: 0; width: 50%; }
+    .rf-star .rf-f { left: 50%; width: 50%; }
+    .rf-star input:focus-visible + label { outline: 2px solid var(--orange); outline-offset: 1px; border-radius: 6px; }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .rf-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
     .rf-check { display: flex; align-items: flex-start; gap: 10px; font-size: .82rem; color: rgba(255,255,255,.85); cursor: pointer; }
@@ -422,8 +428,8 @@
       <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks">Menu ☰</button>
       <div class="nav-links" id="navLinks">
         <a href="#home">Home</a>
-        <a href="#services">Services</a>
         <a href="#videos">Videos</a>
+        <a href="#services">Services</a>
         <a href="#projects">Projects</a>
         <a href="#gallery">Gallery</a>
         <a href="#about">About</a>
@@ -463,6 +469,51 @@
         <div class="trust-item"><div class="trust-icon">◇</div><div><strong>Project Transparency</strong><span>Progress updates and clear communication</span></div></div>
       </div>
     </div>
+
+    <section class="section videos" id="videos">
+      <div class="container">
+        <div class="section-head">
+          <div><p class="eyebrow">Featured videos</p><h2>See the work in motion.</h2><p class="lead">Short walkthroughs and site updates from Daamin projects.</p></div>
+          <a class="btn btn-outline" href="#gallery">Watch more <span aria-hidden="true">&#8599;</span></a>
+        </div>
+        <div class="video-grid">
+          <article class="video-card" data-reel="1">
+            <div class="video-frame">
+              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Tower project film">
+                <source src="videos/featured-1.mp4" type="video/mp4">
+              </video>
+              <img class="video-poster" src="images/video-1-poster.jpg" alt="Elaaf Tower, Scheme 33, Karachi" width="720" height="1280" loading="lazy">
+              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Tower project film"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
+            </div>
+            <div class="video-body"><h3>Elaaf Tower</h3><p>Project film &middot; Scheme 33, Karachi</p></div>
+          </article>
+          <article class="video-card" data-reel="2">
+            <div class="video-frame">
+              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Icon, 30 September 2026">
+                <source src="videos/featured-2.mp4" type="video/mp4">
+              </video>
+              <img class="video-poster" src="images/video-2-poster.jpg" alt="Elaaf Icon construction update, 30 September 2026" width="720" height="1280" loading="lazy">
+              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 30 September 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
+            </div>
+            <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 30 September 2026</p></div>
+          </article>
+          <article class="video-card" data-reel="3">
+            <div class="video-frame">
+              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Icon, 10 October 2026">
+                <source src="videos/featured-3.mp4" type="video/mp4">
+              </video>
+              <img class="video-poster" src="images/video-3-poster.jpg" alt="Elaaf Icon construction update, 10 October 2026" width="720" height="1280" loading="lazy">
+              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 10 October 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
+            </div>
+            <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 10 October 2026</p></div>
+          </article>
+        </div>
+        <p class="video-note">Hover a clip to play it with sound &mdash; on a phone, tap it. The speaker button in each corner mutes it again.</p>
+      </div>
+    </section>
 
     <section class="section services" id="services">
       <div class="container">
@@ -543,51 +594,6 @@
   {"name":"Waleed C.","service":"Property Development","text":"The team took time to understand our priorities and explained the project clearly. Overall coordination was good and professional.","stars":4.5},
   {"name":"Nida B.","service":"Property Investment Guidance","text":"The guidance was clear and practical, with no pressure to make a quick decision. It was helpful to understand the risks beforehand.","stars":5}
 ]</script>
-
-    <section class="section videos" id="videos">
-      <div class="container">
-        <div class="section-head">
-          <div><p class="eyebrow">Featured videos</p><h2>See the work in motion.</h2><p class="lead">Short walkthroughs and site updates from Daamin projects.</p></div>
-          <a class="btn btn-outline" href="#gallery">Watch more <span aria-hidden="true">&#8599;</span></a>
-        </div>
-        <div class="video-grid">
-          <article class="video-card" data-reel="1">
-            <div class="video-frame">
-              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Tower project film">
-                <source src="videos/featured-1.mp4" type="video/mp4">
-              </video>
-              <img class="video-poster" src="images/video-1-poster.jpg" alt="Elaaf Tower, Scheme 33, Karachi" width="720" height="1280" loading="lazy">
-              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Tower project film"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
-            </div>
-            <div class="video-body"><h3>Elaaf Tower</h3><p>Project film &middot; Scheme 33, Karachi</p></div>
-          </article>
-          <article class="video-card" data-reel="2">
-            <div class="video-frame">
-              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Icon, 30 September 2026">
-                <source src="videos/featured-2.mp4" type="video/mp4">
-              </video>
-              <img class="video-poster" src="images/video-2-poster.jpg" alt="Elaaf Icon construction update, 30 September 2026" width="720" height="1280" loading="lazy">
-              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 30 September 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
-            </div>
-            <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 30 September 2026</p></div>
-          </article>
-          <article class="video-card" data-reel="3">
-            <div class="video-frame">
-              <video class="reel" loop muted playsinline preload="metadata" data-title="Elaaf Icon, 10 October 2026">
-                <source src="videos/featured-3.mp4" type="video/mp4">
-              </video>
-              <img class="video-poster" src="images/video-3-poster.jpg" alt="Elaaf Icon construction update, 10 October 2026" width="720" height="1280" loading="lazy">
-              <span class="video-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
-              <button class="video-sound" type="button" aria-pressed="false" aria-label="Turn on sound for Elaaf Icon, 10 October 2026"><svg class="off" viewBox="0 0 24 24" aria-hidden="true"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg><svg class="on" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
-            </div>
-            <div class="video-body"><h3>Elaaf Icon</h3><p>Site update &middot; 10 October 2026</p></div>
-          </article>
-        </div>
-        <p class="video-note">Hover a clip to play it with sound &mdash; on a phone, tap it. The speaker button in each corner mutes it again.</p>
-      </div>
-    </section>
 
     <section class="section" id="projects">
       <div class="container">
@@ -836,13 +842,14 @@
         <div class="rf-field"><label for="rfPhone">WhatsApp number</label><input id="rfPhone" name="phone" type="tel" inputmode="tel" maxlength="22" autocomplete="tel" required placeholder="0300 1234567"><p class="rf-note">Kept private. It is never shown on the website, only used if our team needs to speak with you about your review.</p></div>
         <div class="rf-field"><label for="rfService">Service you used</label><select id="rfService" name="service"><option>Real Estate</option><option>Construction</option><option>Renovation</option><option>Property Development</option><option>Property Investment Guidance</option><option>Property Buying &amp; Selling</option><option>Project Sales &amp; Marketing</option><option>Other</option></select></div>
         <fieldset class="rf-field rf-stars"><legend>Your rating</legend>
-          <div class="rf-starrow">
-            <input type="radio" id="rfS5" name="stars" value="5"><label for="rfS5" title="5 stars"><span class="sr">5 stars</span>&#9733;</label>
-            <input type="radio" id="rfS4" name="stars" value="4"><label for="rfS4" title="4 stars"><span class="sr">4 stars</span>&#9733;</label>
-            <input type="radio" id="rfS3" name="stars" value="3"><label for="rfS3" title="3 stars"><span class="sr">3 stars</span>&#9733;</label>
-            <input type="radio" id="rfS2" name="stars" value="2"><label for="rfS2" title="2 stars"><span class="sr">2 stars</span>&#9733;</label>
-            <input type="radio" id="rfS1" name="stars" value="1"><label for="rfS1" title="1 star"><span class="sr">1 star</span>&#9733;</label>
+          <div class="rf-starrow" id="rfStars">
+            <span class="rf-star"><input type="radio" id="rfS0_5" name="stars" value="0.5"><label class="rf-h" for="rfS0_5" title="0.5 stars"><span class="sr">0.5 stars</span></label><input type="radio" id="rfS1" name="stars" value="1"><label class="rf-f" for="rfS1" title="1 star"><span class="sr">1 star</span></label><span class="rf-glyph" aria-hidden="true">&#9733;</span></span>
+            <span class="rf-star"><input type="radio" id="rfS1_5" name="stars" value="1.5"><label class="rf-h" for="rfS1_5" title="1.5 stars"><span class="sr">1.5 stars</span></label><input type="radio" id="rfS2" name="stars" value="2"><label class="rf-f" for="rfS2" title="2 stars"><span class="sr">2 stars</span></label><span class="rf-glyph" aria-hidden="true">&#9733;</span></span>
+            <span class="rf-star"><input type="radio" id="rfS2_5" name="stars" value="2.5"><label class="rf-h" for="rfS2_5" title="2.5 stars"><span class="sr">2.5 stars</span></label><input type="radio" id="rfS3" name="stars" value="3"><label class="rf-f" for="rfS3" title="3 stars"><span class="sr">3 stars</span></label><span class="rf-glyph" aria-hidden="true">&#9733;</span></span>
+            <span class="rf-star"><input type="radio" id="rfS3_5" name="stars" value="3.5"><label class="rf-h" for="rfS3_5" title="3.5 stars"><span class="sr">3.5 stars</span></label><input type="radio" id="rfS4" name="stars" value="4"><label class="rf-f" for="rfS4" title="4 stars"><span class="sr">4 stars</span></label><span class="rf-glyph" aria-hidden="true">&#9733;</span></span>
+            <span class="rf-star"><input type="radio" id="rfS4_5" name="stars" value="4.5"><label class="rf-h" for="rfS4_5" title="4.5 stars"><span class="sr">4.5 stars</span></label><input type="radio" id="rfS5" name="stars" value="5"><label class="rf-f" for="rfS5" title="5 stars"><span class="sr">5 stars</span></label><span class="rf-glyph" aria-hidden="true">&#9733;</span></span>
           </div>
+          <p class="rf-note" id="rfStarText">Tap the left half of a star for a half rating, such as 4.5.</p>
         </fieldset>
         <div class="rf-field"><label for="rfText">Your review</label><textarea id="rfText" name="text" rows="5" maxlength="600" required placeholder="What was your experience like?"></textarea><p class="rf-note"><span id="rfCount">0</span> / 600 characters</p></div>
         <div class="rf-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
@@ -1279,7 +1286,7 @@
       });
 
       /* A card shows a fixed amount of text; the popup below always shows all of it.
-         The full review opens in a crystal dialog on a click, Enter, or two seconds of hovering. */
+         The full review opens in a crystal dialog on a click, a tap, or Enter. */
       var viewer = document.getElementById('reviewViewer');
       if (!viewer) return;
       var vTag = viewer.querySelector('.review-full-tag');
@@ -1297,7 +1304,6 @@
         if (st) vStars.appendChild(st);
         vText.textContent = review.text;
         vWho.textContent = review.name + (review.role ? ' · ' + review.role : '');
-        justClosed = cardEl;
         document.documentElement.classList.add('viewer-open');
         if (!viewer.open) viewer.showModal();
       }
@@ -1307,28 +1313,9 @@
         if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('review-card')) { e.preventDefault(); openReview(e.target); }
       });
 
-      /* Two seconds resting on a card opens it. Touch screens have no hover, so they use a tap. After
-         the popup closes, the pointer must leave that card before hovering can open it again, or it
-         would reopen straight away while the mouse sits still. */
-      var hoverCard = null, hoverTimer = null, justClosed = null;
-      rows.addEventListener('pointerover', function (e) {
-        var c = e.target.closest('.review-card');
-        if (!c) { justClosed = null; return; }
-        if (e.pointerType === 'touch' || c === justClosed || c === hoverCard) return;
-        clearTimeout(hoverTimer);
-        hoverCard = c;
-        hoverTimer = setTimeout(function () { if (hoverCard === c) { justClosed = c; openReview(c); } }, 2000);
-      });
-      rows.addEventListener('pointerout', function (e) {
-        var c = e.target.closest('.review-card');
-        if (!c || (e.relatedTarget && c.contains(e.relatedTarget))) return;
-        clearTimeout(hoverTimer);
-        if (hoverCard === c) hoverCard = null;
-      });
-
       viewer.querySelector('.viewer-close').addEventListener('click', function () { viewer.close(); });
       viewer.addEventListener('click', function (e) { if (e.target === viewer) viewer.close(); });
-      viewer.addEventListener('close', function () { document.documentElement.classList.remove('viewer-open'); hoverCard = null; });
+      viewer.addEventListener('close', function () { document.documentElement.classList.remove('viewer-open'); });
       }
     })();
 
@@ -1346,7 +1333,30 @@
       var count = document.getElementById('rfCount');
       var openedAt = 0;
 
-      function reset() { form.hidden = false; done.hidden = true; err.textContent = ''; submit.disabled = false; submit.textContent = 'Send review'; }
+      /* Star picker: each star has a left half (x.5) and a right half (x). The gold fill is a
+         percentage per star, so choosing 4.5 shows four full stars and half of the fifth. */
+      var starRow = document.getElementById('rfStars');
+      var starText = document.getElementById('rfStarText');
+      var starEls = Array.prototype.slice.call(starRow.querySelectorAll('.rf-star'));
+      var starHint = starText.textContent;
+      function paintStars(value) {
+        starEls.forEach(function (el, i) { el.style.setProperty('--fill', (Math.max(0, Math.min(1, value - i)) * 100) + '%'); });
+      }
+      function chosenStars() { var c = form.querySelector('input[name="stars"]:checked'); return c ? Number(c.value) : 0; }
+      function showChosen() {
+        var v = chosenStars();
+        paintStars(v);
+        starText.textContent = v ? v + ' out of 5 stars' : starHint;
+      }
+      starRow.addEventListener('change', showChosen);
+      starRow.addEventListener('mouseover', function (e) {
+        var label = e.target.closest('label');
+        if (label) paintStars(Number(document.getElementById(label.htmlFor).value));
+      });
+      starRow.addEventListener('mouseleave', showChosen);
+      form.addEventListener('reset', function () { setTimeout(showChosen, 0); });
+
+      function reset() { form.hidden = false; done.hidden = true; err.textContent = ''; submit.disabled = false; submit.textContent = 'Send review'; showChosen(); }
       function fail(message, fieldId) {
         err.textContent = message;
         if (fieldId) document.getElementById(fieldId).focus();
