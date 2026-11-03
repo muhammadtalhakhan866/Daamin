@@ -84,24 +84,63 @@ function text(v, max) {
 }
 
 /* Accepts only the shape the site understands, so nothing arbitrary is stored or later rendered. */
+const CATEGORIES = ['development', 'construction', 'interior'];
+
+function cleanPhotos(photos, id) {
+  if (!Array.isArray(photos) || photos.length < 1) throw new Error('Project ' + id + ' needs at least one picture.');
+  if (photos.length > MAX_PHOTOS) throw new Error('Project ' + id + ' has more than ' + MAX_PHOTOS + ' pictures.');
+  return photos.map((p) => {
+    if (!p || !okAsset(p.l) || !okAsset(p.s)) throw new Error('Bad picture address in ' + id + '.');
+    return { l: p.l, s: p.s };
+  });
+}
+
+/* The wording shown for a project. Only the fields that are present are kept, so a built-in project can
+   change just its description and leave everything else as the page has it. */
+function cleanProjectText(src, id, out, requireName) {
+  if (src.name !== undefined || requireName) {
+    const name = text(src.name, 80);
+    if (name.length < 2) throw new Error('Project ' + id + ' needs a name (at least 2 characters).');
+    out.name = name;
+  }
+  if (src.location !== undefined) out.location = text(src.location, 80);
+  if (src.status !== undefined) out.status = text(src.status, 30);
+  if (src.description !== undefined) out.description = text(src.description, 500);
+  if (src.category !== undefined) {
+    if (!CATEGORIES.includes(src.category)) throw new Error('Project ' + id + ' has an unknown type.');
+    out.category = src.category;
+  }
+}
+
 function cleanContent(input) {
   if (!input || typeof input !== 'object') throw new Error('Content must be an object.');
-  const out = { projects: {}, videos: {} };
+  const out = { projects: {}, added: [], videos: {} };
 
+  /* Built-in projects: new pictures and/or new wording. */
   const projects = input.projects && typeof input.projects === 'object' ? input.projects : {};
   const ids = Object.keys(projects);
   if (ids.length > 60) throw new Error('Too many projects.');
   for (const id of ids) {
     if (!/^[a-z0-9-]{2,40}$/.test(id)) throw new Error('Bad project id: ' + id);
-    const photos = projects[id] && projects[id].photos;
-    if (!Array.isArray(photos) || photos.length < 1) throw new Error('Project ' + id + ' needs at least one picture.');
-    if (photos.length > MAX_PHOTOS) throw new Error('Project ' + id + ' has more than ' + MAX_PHOTOS + ' pictures.');
-    out.projects[id] = {
-      photos: photos.map((p) => {
-        if (!p || !okAsset(p.l) || !okAsset(p.s)) throw new Error('Bad picture address in ' + id + '.');
-        return { l: p.l, s: p.s };
-      })
-    };
+    const src = projects[id] || {};
+    const entry = {};
+    if (src.photos !== undefined) entry.photos = cleanPhotos(src.photos, id);
+    cleanProjectText(src, id, entry, false);
+    if (Object.keys(entry).length) out.projects[id] = entry;
+  }
+
+  /* Projects the owner has added: complete records, with their own pictures. */
+  const added = Array.isArray(input.added) ? input.added : [];
+  if (added.length > 40) throw new Error('Too many added projects.');
+  const seen = new Set();
+  for (const p of added) {
+    if (!p || typeof p.id !== 'string' || !/^new-[a-z0-9]{3,30}$/.test(p.id)) throw new Error('Bad id on an added project.');
+    if (seen.has(p.id)) throw new Error('Duplicate project id.');
+    seen.add(p.id);
+    const entry = { id: p.id, location: '', status: '', description: '', category: 'development' };
+    cleanProjectText(p, p.id, entry, true);
+    entry.photos = cleanPhotos(p.photos, p.id);
+    out.added.push(entry);
   }
 
   const videos = input.videos && typeof input.videos === 'object' ? input.videos : {};
@@ -121,6 +160,9 @@ function blobUrlsIn(content) {
   const add = (v) => { if (isBlobUrl(v)) urls.add(v); };
   for (const id of Object.keys((content && content.projects) || {})) {
     for (const p of content.projects[id].photos || []) { add(p.l); add(p.s); }
+  }
+  for (const proj of (content && content.added) || []) {
+    for (const p of proj.photos || []) { add(p.l); add(p.s); }
   }
   for (const slot of Object.keys((content && content.videos) || {})) {
     add(content.videos[slot].src); add(content.videos[slot].poster);

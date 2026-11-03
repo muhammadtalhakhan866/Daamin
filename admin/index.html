@@ -41,6 +41,12 @@
     .msg.ok { color: var(--ok); }
     .panel { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 20px; margin-bottom: 18px; }
     .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-bottom: 16px; }
+    .fields .full { grid-column: 1 / -1; }
+    .fields select { width: 100%; padding: 11px 13px; border: 1px solid #d5d9e4; border-radius: 11px; background: #fff; color: var(--ink); }
+    .addrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .addrow small { color: var(--muted); font-weight: 600; }
+    @media (max-width: 560px) { .fields { grid-template-columns: 1fr; } }
     .panel-head h2 { margin: 0; font-size: 1.1rem; color: var(--navy); }
     .panel-head small { color: var(--muted); font-weight: 600; }
     .count { font-size: .82rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--navy); }
@@ -98,6 +104,7 @@
       view: 'login', tab: 'projects', msg: '', configured: true,
       defaults: { projects: {}, order: [], videos: {} },
       projects: {}, videos: {},                       /* what is being edited right now */
+      meta: {}, addedIds: [],                         /* wording per project, and the ids of projects added here (newest first) */
       saved: '{}',                                    /* last published overrides, as text */
       busy: '', progress: 0, banner: '',
       reviews: [], reviewsLoaded: false, reviewsError: '', reviewsFilter: 'pending', services: [], drafts: {}, working: ''
@@ -144,6 +151,9 @@
         out.projects[id] = {
           name: card.querySelector('.project-name').textContent,
           loc: card.querySelector('.project-location').textContent,
+          status: card.querySelector('.status').textContent,
+          desc: card.querySelector('.project-desc').textContent,
+          category: card.dataset.category || 'development',
           photos: large.map((l) => ({ l, s: l.replace(/\.jpg$/, '-s.jpg') }))
         };
       });
@@ -158,11 +168,22 @@
       return out;
     }
 
+    const TEXT_KEYS = ['name', 'loc', 'status', 'desc', 'category'];
+    const SAVED_KEY = { name: 'name', loc: 'location', status: 'status', desc: 'description', category: 'category' };
+
     function startEditing(saved) {
-      state.projects = {}; state.videos = {};
+      state.projects = {}; state.videos = {}; state.meta = {}; state.addedIds = [];
       for (const id of state.defaults.order) {
         const own = saved.projects && saved.projects[id];
-        state.projects[id] = clone(own ? own.photos : state.defaults.projects[id].photos);
+        const def = state.defaults.projects[id];
+        state.projects[id] = clone(own && own.photos ? own.photos : def.photos);
+        state.meta[id] = {};
+        for (const k of TEXT_KEYS) state.meta[id][k] = own && own[SAVED_KEY[k]] !== undefined ? own[SAVED_KEY[k]] : def[k];
+      }
+      for (const p of (saved.added || [])) {
+        state.addedIds.push(p.id);
+        state.projects[p.id] = clone(p.photos);
+        state.meta[p.id] = { name: p.name, loc: p.location, status: p.status, desc: p.description, category: p.category };
       }
       for (const slot of Object.keys(state.defaults.videos)) {
         const own = saved.videos && saved.videos[slot];
@@ -173,11 +194,18 @@
 
     /* Only what differs from the built-in site is stored. */
     function overrides() {
-      const out = { projects: {}, videos: {} };
+      const out = { projects: {}, added: [], videos: {} };
       for (const id of state.defaults.order) {
         const now = state.projects[id].map((p) => p.l).join('|');
-        const base = state.defaults.projects[id].photos.map((p) => p.l).join('|');
-        if (now !== base) out.projects[id] = { photos: clone(state.projects[id]) };
+        const def = state.defaults.projects[id];
+        const entry = {};
+        if (now !== def.photos.map((p) => p.l).join('|')) entry.photos = clone(state.projects[id]);
+        for (const k of TEXT_KEYS) if (state.meta[id][k] !== def[k]) entry[SAVED_KEY[k]] = state.meta[id][k];
+        if (Object.keys(entry).length) out.projects[id] = entry;
+      }
+      for (const id of state.addedIds) {
+        const m = state.meta[id];
+        out.added.push({ id, name: m.name, location: m.loc, status: m.status, description: m.desc, category: m.category, photos: clone(state.projects[id]) });
       }
       for (const slot of Object.keys(state.defaults.videos)) {
         const a = state.videos[slot], b = state.defaults.videos[slot];
@@ -236,7 +264,7 @@
     }
     function makeCover(id, i) { const [p] = state.projects[id].splice(i, 1); state.projects[id].unshift(p); render(); }
     function removePhoto(id, i) {
-      if (state.projects[id].length < 2) { state.banner = 'A project needs at least one picture. Add another before removing this one.'; render(); return; }
+      if (state.projects[id].length < 2 && !state.addedIds.includes(id)) { state.banner = 'A project needs at least one picture. Add another before removing this one.'; render(); return; }
       state.projects[id].splice(i, 1); render();
     }
 
@@ -289,7 +317,19 @@
     }
 
     /* ---------- publishing ---------- */
+    function problems() {
+      for (const id of state.addedIds) {
+        const m = state.meta[id];
+        if (m.name.trim().length < 2) return 'Give every new project a name before publishing.';
+        if (!state.projects[id].length) return '"' + m.name.trim() + '" needs at least one picture before publishing.';
+      }
+      for (const id of state.defaults.order) if (state.meta[id].name.trim().length < 2) return 'A project name cannot be empty.';
+      return '';
+    }
+
     async function publish() {
+      const bad = problems();
+      if (bad) { state.banner = bad; render(); return; }
       try {
         state.busy = 'Publishing...'; state.progress = 0; paintBar();
         const body = overrides();
@@ -341,17 +381,59 @@
           h('button', { class: 'tool', type: 'button', 'aria-label': 'Remove picture', title: 'Remove', disabled: dis, onclick: () => removePhoto(id, i) }, '×')));
     }
 
+    const TYPES = [['development', 'Development'], ['construction', 'Construction'], ['interior', 'Interiors & renovation']];
+
+    function newProject() {
+      const id = 'new-' + Math.random().toString(36).slice(2, 8);
+      state.addedIds.unshift(id);
+      state.projects[id] = [];
+      state.meta[id] = { name: '', loc: '', status: '', desc: '', category: 'development' };
+      state.banner = '';
+      render();
+      const first = document.getElementById('pn-' + id);
+      if (first) { first.scrollIntoView({ block: 'center' }); first.focus(); }
+    }
+
+    function deleteProject(id) {
+      if (!confirm('Remove this new project? Its pictures will be deleted when you publish.')) return;
+      state.addedIds = state.addedIds.filter((x) => x !== id);
+      delete state.projects[id]; delete state.meta[id];
+      render();
+    }
+
+    function field(id, key, label, props, tag) {
+      const m = state.meta[id], dis = !!state.busy;
+      const el = tag === 'textarea'
+        ? h('textarea', Object.assign({ id: 'p' + key + '-' + id, disabled: dis }, props), m[key])
+        : h('input', Object.assign({ type: 'text', id: (key === 'name' ? 'pn-' : 'p' + key + '-') + id, value: m[key], disabled: dis }, props));
+      el.addEventListener('input', () => { m[key] = el.value; paintBar(); });
+      return h('div', {}, h('label', { for: el.id }, label), el);
+    }
+
     function projectPanel(id) {
-      const meta = state.defaults.projects[id], list = state.projects[id];
-      const changed = list.map((p) => p.l).join('|') !== meta.photos.map((p) => p.l).join('|');
+      const isNew = state.addedIds.includes(id);
+      const def = state.defaults.projects[id], m = state.meta[id], list = state.projects[id];
+      const changed = !isNew && (list.map((p) => p.l).join('|') !== def.photos.map((p) => p.l).join('|') || TEXT_KEYS.some((k) => m[k] !== def[k]));
       const picker = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true, disabled: !!state.busy });
       picker.addEventListener('change', () => { const f = Array.from(picker.files); picker.value = ''; addPhotos(id, f); });
+      const type = h('select', { id: 'pc-' + id, disabled: !!state.busy }, TYPES.map(([v, t]) => h('option', { value: v, selected: v === m.category }, t)));
+      type.addEventListener('change', () => { m.category = type.value; paintBar(); });
+      const statusBox = field(id, 'status', 'Status', { maxlength: 30, list: 'ps-list', placeholder: 'e.g. Completed (leave empty for none)' });
+      statusBox.append(h('datalist', { id: 'ps-list' }, ['Completed', 'Under construction', 'Coming soon'].map((v) => h('option', { value: v }))));
+      const reset = () => { state.projects[id] = clone(def.photos); state.meta[id] = {}; for (const k of TEXT_KEYS) state.meta[id][k] = def[k]; render(); };
       return h('section', { class: 'panel' },
         h('div', { class: 'panel-head' },
-          h('div', {}, h('h2', {}, meta.name), h('small', {}, meta.loc)),
+          h('div', {}, h('h2', {}, m.name.trim() || 'New project'), h('small', {}, isNew ? 'New project: not on the site until you publish' : m.loc)),
           h('div', { class: 'vrow' },
             h('span', { class: 'count' + (list.length >= MAX ? ' full' : '') }, list.length + ' / ' + MAX + ' pictures'),
-            changed ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', disabled: !!state.busy, onclick: () => { state.projects[id] = clone(meta.photos); render(); } }, 'Reset to original') : null)),
+            changed ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', disabled: !!state.busy, onclick: reset }, 'Reset to original') : null,
+            isNew ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', disabled: !!state.busy, onclick: () => deleteProject(id) }, 'Remove project') : null)),
+        h('div', { class: 'fields' },
+          field(id, 'name', 'Project name', { maxlength: 80, placeholder: 'e.g. Elaaf Heights' }),
+          field(id, 'loc', 'Location shown on the tile', { maxlength: 80, placeholder: 'e.g. Gulshan-e-Iqbal · Karachi' }),
+          h('div', {}, h('label', { for: 'pc-' + id }, 'Type (for the filter buttons)'), type),
+          statusBox,
+          h('div', { class: 'full' }, field(id, 'desc', 'Description', { maxlength: 500, placeholder: 'A few lines shown when the picture is opened.' }, 'textarea'))),
         h('div', { class: 'photos' },
           list.map((p, i) => photoTile(id, p, i, list.length)),
           list.length < MAX ? h('label', { class: 'add' }, h('span', {}, '+ Add pictures', h('br'), h('small', {}, (MAX - list.length) + ' more allowed')), picker) : null));
@@ -490,10 +572,11 @@
           h('nav', {}, h('a', { href: '../', target: '_blank', rel: 'noopener' }, 'View site'),
             h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: logout }, 'Log out')))),
         h('main', { class: 'wrap' },
-          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Project pictures'), tab('videos', 'Featured videos'), tab('reviews', 'Customer reviews' + (pendingCount() ? ' (' + pendingCount() + ' new)' : ''))),
+          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Projects'), tab('videos', 'Featured videos'), tab('reviews', 'Customer reviews' + (pendingCount() ? ' (' + pendingCount() + ' new)' : ''))),
           state.banner ? h('p', { class: 'msg ok', role: 'status', style: 'margin:0 0 14px' }, state.banner) : null,
           state.tab === 'projects'
-            ? state.defaults.order.map(projectPanel)
+            ? [h('div', { class: 'addrow' }, h('button', { class: 'btn btn-primary', type: 'button', disabled: !!state.busy, onclick: newProject }, '+ Add a new project'), h('small', {}, 'New projects appear first on the site.')),
+               ...state.addedIds.concat(state.defaults.order).map(projectPanel)]
             : state.tab === 'videos'
               ? h('div', { class: 'videos' }, Object.keys(state.defaults.videos).map(videoPanel))
               : reviewsView()),

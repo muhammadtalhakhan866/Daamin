@@ -19,6 +19,12 @@ To change the password later, edit the variable and redeploy. Everyone is signed
 
 ## Using it
 
+- **Projects:** every project has its own panel. Change the name, the location shown on the tile,
+  the status (Completed, Under construction... or leave empty for none), the type (decides which
+  filter button it appears under) and the description shown when the picture is opened.
+  **+ Add a new project** at the top makes a new tile: it needs a name and at least one picture,
+  and appears first on the site and in the contact form's project list. New projects can be removed
+  again with **Remove project**; the projects the site shipped with can be edited but not deleted.
 - **Project pictures:** add pictures (JPG, PNG or WebP; they are resized in your browser first),
   reorder with the arrows, make one the cover with the star, remove with the cross.
   Each album holds at most 10. The first picture is the cover shown on the project tile.

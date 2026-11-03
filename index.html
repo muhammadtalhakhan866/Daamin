@@ -174,6 +174,7 @@
       .project-card:hover .project-image:before { opacity: 1; }
       .project-card.fit-ready:hover .project-image img { transform: scale(1); }
     }
+    .status[hidden] { display: none; }
     .status { position: absolute; top: 14px; left: 14px; z-index: 2; padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.94); color: var(--navy); font-size: .72rem; font-weight: 800; }
     .project-zoom { position: absolute; top: 12px; right: 12px; z-index: 2; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; background: rgba(10,16,42,.5); border: 1px solid rgba(255,255,255,.4); color: #fff; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); transition: background .2s, transform .2s; }
     .project-zoom svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
@@ -758,7 +759,7 @@
             <p>Tell us what you're looking for and our team can follow up using the contact details you provide.</p>
             <div class="contact-detail"><span aria-hidden="true">☎</span><div><b>Call us</b><a href="tel:+923219281965">+92 321 9281965</a><br><a href="tel:+923353800608">+92 335 3800608</a></div></div>
             <div class="contact-detail"><span aria-hidden="true">↗</span><div><b>Website</b><a href="https://www.daamin.com" target="_blank" rel="noopener">www.daamin.com</a></div></div>
-            <div class="contact-detail"><span aria-hidden="true">◎</span><div><b>Social media</b><a href="https://www.instagram.com/daaminbuildersandmarketing/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.facebook.com/daaminbuildersandmarketing" target="_blank" rel="noopener">Facebook</a><br><a href="https://www.linkedin.com/company/daaminestateandbuilder/" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://www.youtube.com/@daaminProperties" target="_blank" rel="noopener">YouTube</a></div></div>
+            <div class="contact-detail"><span aria-hidden="true">◎</span><div><b>Social media</b><a href="https://www.instagram.com/daaminestatebuilder/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.facebook.com/Daaminbuildersandmarketing" target="_blank" rel="noopener">Facebook</a><br><a href="https://www.linkedin.com/company/daaminestateandbuilder" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://www.youtube.com/@daaminProperties" target="_blank" rel="noopener">YouTube</a></div></div>
             <div class="contact-detail"><span aria-hidden="true">⌖</span><div><b>Location</b><span>Karachi, Sindh, Pakistan<br>Confirm official office address before publishing.</span></div></div>
           </div>
           <form class="contact-form" id="contactForm">
@@ -922,23 +923,76 @@
         card.classList.remove('fit-init');
       }
       function fitAll() { cards.forEach(fit); }
-      cards.forEach(function (card) {
+      function wireFit(card) {
         var img = card.querySelector('img');
         if (img.complete) fit(card);
         img.addEventListener('load', function () { fit(card); }); /* also re-measures if the admin swaps the cover */
-      });
+      }
+      cards.forEach(wireFit);
 
-      contentReady.then(function (content) {
+      /* Wording set from the admin: name, place, status, short description and type. Only what was
+         set is changed; everything else stays as the page has it. Always written as text, never as markup. */
+      function applyText(card, p) {
+        if (p.name !== undefined) card.querySelector('.project-name').textContent = p.name;
+        if (p.location !== undefined) card.querySelector('.project-location').textContent = p.location;
+        if (p.status !== undefined) {
+          var chip = card.querySelector('.status');
+          chip.textContent = p.status;
+          chip.hidden = !p.status;
+        }
+        if (p.description !== undefined) card.querySelector('.project-desc').textContent = p.description;
+        if (p.category !== undefined) card.dataset.category = p.category;
+        if (p.name !== undefined || p.location !== undefined) {
+          var open = card.querySelector('.project-open');
+          open.setAttribute('aria-label', 'View ' + card.querySelector('.project-name').textContent + ', ' + card.querySelector('.project-location').textContent);
+        }
+      }
+
+      function setPhotos(card, photos) {
+        card.dataset.photos = photos.map(function (p) { return p.l; }).join('|');
+        card.dataset.smalls = photos.map(function (p) { return p.s; }).join('|');
+        var cover = card.querySelector('img');
+        if (cover.getAttribute('src') !== photos[0].s) cover.src = photos[0].s;
+      }
+
+      /* A project added in the admin: the same tile as the built-in ones, built from plain text. */
+      function makeTile(p) {
+        var card = document.createElement('article');
+        card.className = 'project-card';
+        card.innerHTML = '<button class="project-open" type="button" aria-haspopup="dialog"><span class="project-image"><img alt="" decoding="async" loading="lazy"><span class="status"></span><span class="project-zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span></span><span class="project-caption"><span class="project-location"></span><span class="project-name"></span></span></button><p class="project-desc" hidden></p>';
+        card.dataset.id = p.id;
+        card.dataset.real = 'true';
+        card.dataset.enquiry = p.name;
+        card.querySelector('img').alt = p.name + (p.location ? ', ' + p.location : '');
+        applyText(card, p);
+        setPhotos(card, p.photos);
+        return card;
+      }
+
+      var contentApplied = contentReady.then(function (content) {
         var changed = (content && content.projects) || {};
         Object.keys(changed).forEach(function (id) {
           var card = cards.filter(function (c) { return c.dataset.id === id; })[0];
-          var photos = changed[id] && changed[id].photos;
-          if (!card || !photos || !photos.length) return;
-          card.dataset.photos = photos.map(function (p) { return p.l; }).join('|');
-          card.dataset.smalls = photos.map(function (p) { return p.s; }).join('|');
-          var cover = card.querySelector('img');
-          if (cover.getAttribute('src') !== photos[0].s) cover.src = photos[0].s;
+          if (!card) return;
+          applyText(card, changed[id]);
+          if (changed[id].photos && changed[id].photos.length) setPhotos(card, changed[id].photos);
         });
+        var added = (content && content.added) || [];
+        var select = document.getElementById('project');
+        var other = select && Array.prototype.filter.call(select.options, function (o) { return /^Other/.test(o.value || o.text); })[0];
+        var fresh = added.map(function (p) {
+          var card = makeTile(p);
+          if (select) {
+            var option = document.createElement('option');
+            option.textContent = p.name;
+            select.insertBefore(option, other || null);
+          }
+          return card;
+        });
+        /* Newest first: the admin lists them newest at the top. */
+        fresh.slice().reverse().forEach(function (card) { grid.insertBefore(card, grid.firstChild); });
+        cards = fresh.concat(cards);
+        fresh.forEach(function (card) { wireFit(card); wireOpen(card); });
       });
       var resizeTimer;
       window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(fitAll, 150); });
@@ -1055,7 +1109,7 @@
         if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
       }, { passive: true });
 
-      cards.forEach(function (card) {
+      function wireOpen(card) {
         var opener = card.querySelector('.project-open');
         /* Begin fetching the first full-size picture as soon as a tile is pointed at or touched. */
         ['pointerenter', 'focus', 'touchstart'].forEach(function (evt) {
@@ -1066,7 +1120,8 @@
           document.documentElement.classList.add('viewer-open');
           viewer.showModal();
         });
-      });
+      }
+      cards.forEach(wireOpen);
 
       function ready() { vImg.classList.remove('is-loading'); }
       vImg.addEventListener('load', ready);
