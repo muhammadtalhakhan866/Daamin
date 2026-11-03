@@ -174,6 +174,7 @@
       return out;
     }
 
+    const picking = new Set(); /* pictures whose date is being chosen by hand */
     const pkey = (p) => p.l + '@' + (p.d || '');
     const today = () => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); };
     const TEXT_KEYS = ['name', 'loc', 'status', 'desc', 'category'];
@@ -379,11 +380,24 @@
 
     function photoTile(id, p, i, count) {
       const dis = !!state.busy;
-      const date = h('input', { type: 'date', class: 'pdate', value: p.d || '', max: '2099-12-31', 'aria-label': 'Date shown for picture ' + (i + 1), disabled: dis });
-      date.addEventListener('change', () => { if (date.value) p.d = date.value; else delete p.d; render(); });
-      const row = h('div', { class: 'daterow' }, date,
-        p.d ? h('button', { class: 'tool-link', type: 'button', disabled: dis, onclick: () => { delete p.d; render(); } }, 'Remove date')
-          : h('button', { class: 'tool-link', type: 'button', disabled: dis, onclick: () => { p.d = today(); render(); } }, 'Add date'));
+      /* Per picture: today's date, a date of your choosing, or none. */
+      const key = id + '-' + i;
+      const mode = !p.d ? 'none' : picking.has(key) || p.d !== today() ? 'pick' : 'today';
+      const pick = h('select', { class: 'pdate', 'aria-label': 'Date shown for picture ' + (i + 1), disabled: dis },
+        h('option', { value: 'today', selected: mode === 'today' }, "Today's date"),
+        h('option', { value: 'pick', selected: mode === 'pick' }, 'Choose a date'),
+        h('option', { value: 'none', selected: mode === 'none' }, "Don't show a date"));
+      pick.addEventListener('change', () => {
+        picking.delete(key);
+        if (pick.value === 'none') delete p.d; else p.d = p.d || today();
+        if (pick.value === 'today') p.d = today();
+        if (pick.value === 'pick') picking.add(key);
+        render();
+        if (pick.value === 'pick') { const box = document.querySelector('[data-date="' + id + '-' + i + '"]'); if (box && box.showPicker) { try { box.showPicker(); } catch (e) { box.focus(); } } }
+      });
+      const exact = h('input', { type: 'date', class: 'pdate', 'data-date': id + '-' + i, value: p.d || '', max: '2099-12-31', 'aria-label': 'Pick the date for picture ' + (i + 1), disabled: dis });
+      exact.addEventListener('change', () => { if (exact.value) p.d = exact.value; else delete p.d; render(); });
+      const row = h('div', { class: 'daterow' }, pick, mode === 'pick' ? exact : null);
       return h('div', { class: 'phototile' }, h('div', { class: 'photo' },
         h('img', { src: shown(p.s), alt: 'Picture ' + (i + 1), loading: 'lazy' }),
         i === 0 ? h('span', { class: 'badge' }, 'Cover') : null,

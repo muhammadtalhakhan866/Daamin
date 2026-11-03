@@ -209,8 +209,13 @@
     .viewer-info .viewer-note { padding: 11px 13px; border-radius: 12px; border: 1px solid rgba(255,176,138,.38); background: rgba(255,176,138,.12); color: #ffd7c5; font-size: .82rem; }
     .viewer-note[hidden] { display: none; }
     .viewer-enquire { align-self: flex-start; margin-top: 8px; }
-    .viewer-info .viewer-date { margin-top: 14px; color: var(--orange-soft, #ffb48f); font-size: .86rem; font-weight: 700; }
-    .viewer-info .viewer-date span { color: rgba(255,255,255,.6); font-weight: 600; }
+    .viewer-info .viewer-date { position: absolute; right: 38px; bottom: 30px; text-align: right; color: #ffb48f; font-size: .84rem; font-weight: 700; animation: date-in .45s ease both; }
+    .viewer-info .viewer-date span { display: block; color: rgba(255,255,255,.6); font-size: .76rem; font-weight: 600; }
+    @keyframes date-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    /* tile: the date slides in while the album is pointed at (always visible where there is no hover) */
+    .project-date { position: absolute; top: 52px; left: 14px; z-index: 2; padding: 5px 10px; border-radius: 999px; background: rgba(10,15,44,.78); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: .01em; backdrop-filter: blur(6px); opacity: 0; transform: translateX(-12px); transition: opacity .35s ease, transform .35s ease; pointer-events: none; }
+    .project-card:hover .project-date, .project-open:focus-visible .project-date { opacity: 1; transform: none; }
+    @media (hover: none) { .project-date { opacity: 1; transform: none; } }
     .viewer-info .viewer-count { margin-top: auto; padding-top: 14px; color: rgba(255,255,255,.55); font-size: .8rem; }
     .viewer-close, .viewer-nav { display: grid; place-items: center; width: 42px; height: 42px; padding: 0; cursor: pointer; border-radius: 50%; border: 1px solid rgba(255,255,255,.34); background: rgba(10,16,42,.55); color: #fff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background .2s, transform .2s; }
     .viewer-close:hover, .viewer-nav:hover { background: var(--orange); border-color: transparent; }
@@ -384,6 +389,7 @@
       .viewer-stage { min-height: 0; padding: 62px 16px 16px; }
       .viewer-stage img { max-height: 52vh; }
       .viewer-info { padding: 24px 22px 28px; }
+      .viewer-info .viewer-date { right: 22px; bottom: 26px; }
       .viewer-nav { top: auto; bottom: 28px; margin-top: 0; }
       .video-grid { grid-template-columns: minmax(0, 300px); gap: 20px; }
       .process-grid { grid-template-columns: 1fr 1fr; }
@@ -951,10 +957,25 @@
         }
       }
 
+      /* The cover picture's date, as a small chip that slides in when the album is pointed at. */
+      function tileDate(card) {
+        var chip = card.querySelector('.project-date');
+        var when = ago((card.dataset.dates || '').split('|')[0]);
+        if (!when) { if (chip) chip.remove(); return; }
+        if (!chip) {
+          chip = document.createElement('span');
+          chip.className = 'project-date';
+          card.querySelector('.project-image').appendChild(chip);
+        }
+        chip.textContent = 'Added ' + when.rel;
+        chip.title = when.exact;
+      }
+
       function setPhotos(card, photos) {
         card.dataset.photos = photos.map(function (p) { return p.l; }).join('|');
         card.dataset.smalls = photos.map(function (p) { return p.s; }).join('|');
         card.dataset.dates = photos.map(function (p) { return p.d || ''; }).join('|');
+        tileDate(card);
         var cover = card.querySelector('img');
         if (cover.getAttribute('src') !== photos[0].s) cover.src = photos[0].s;
       }
@@ -1083,7 +1104,7 @@
         if (when) {
           vDate.append('Added ' + when.rel + ' ');
           var exact = document.createElement('span');
-          exact.textContent = '· ' + when.exact;
+          exact.textContent = when.exact;
           vDate.append(exact);
         }
         var list = visibleCards();
