@@ -44,6 +44,7 @@
     .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 14px; margin-bottom: 16px; }
     .fields .full { grid-column: 1 / -1; }
     .fields select { width: 100%; padding: 11px 13px; border: 1px solid #d5d9e4; border-radius: 11px; background: #fff; color: var(--ink); }
+    .fields select + input { margin-top: 8px; }
     .addrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
     .addrow small { color: var(--muted); font-weight: 600; }
     @media (max-width: 560px) { .fields { grid-template-columns: 1fr; } }
@@ -418,8 +419,19 @@
       picker.addEventListener('change', () => { const f = Array.from(picker.files); picker.value = ''; addPhotos(id, f); });
       const type = h('select', { id: 'pc-' + id, disabled: !!state.busy }, TYPES.map(([v, t]) => h('option', { value: v, selected: v === m.category }, t)));
       type.addEventListener('change', () => { m.category = type.value; paintBar(); });
-      const statusBox = field(id, 'status', 'Status', { maxlength: 30, list: 'ps-list', placeholder: 'e.g. Completed (leave empty for none)' });
-      statusBox.append(h('datalist', { id: 'ps-list' }, ['Completed', 'Under construction', 'Coming soon'].map((v) => h('option', { value: v }))));
+      const PRESETS = ['Completed', 'Work in progress'];
+      const custom = !PRESETS.includes(m.status);
+      const pick = h('select', { id: 'ps-' + id, disabled: !!state.busy },
+        PRESETS.map((v) => h('option', { value: v, selected: m.status === v }, v)),
+        h('option', { value: '', selected: custom }, 'Other (write your own)'));
+      const own = h('input', { type: 'text', id: 'pstatus-' + id, maxlength: 30, value: custom ? m.status : '', placeholder: 'Type any status, e.g. Coming soon', disabled: !!state.busy, hidden: !custom });
+      pick.addEventListener('change', () => {
+        if (pick.value) { m.status = pick.value; own.hidden = true; }
+        else { own.hidden = false; m.status = own.value; own.focus(); }
+        paintBar();
+      });
+      own.addEventListener('input', () => { m.status = own.value; paintBar(); });
+      const statusBox = h('div', {}, h('label', { for: 'ps-' + id }, 'Status'), pick, own);
       const reset = () => { state.projects[id] = clone(def.photos); state.meta[id] = {}; for (const k of TEXT_KEYS) state.meta[id][k] = def[k]; render(); };
       return h('section', { class: 'panel' },
         h('div', { class: 'panel-head' },
