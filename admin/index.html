@@ -53,13 +53,18 @@
     .count { font-size: .82rem; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--navy); }
     .count.full { background: #fff0e9; color: #b9441a; }
     .photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+    .phototile { display: flex; flex-direction: column; gap: 6px; }
+    .daterow { display: flex; flex-direction: column; gap: 3px; }
+    .pdate { width: 100%; padding: 6px 8px; border: 1px solid #d5d9e4; border-radius: 9px; background: #fff; color: var(--ink); font-size: .82rem; }
+    .tool-link { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--orange); font-size: .76rem; font-weight: 700; cursor: pointer; text-decoration: underline; }
+    .tool-link:disabled { opacity: .5; cursor: default; }
     .photo { position: relative; border-radius: 12px; overflow: hidden; background: #dfe3ee; aspect-ratio: 3 / 4; border: 1px solid var(--line); }
     .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .photo .badge { position: absolute; top: 8px; left: 8px; padding: 3px 9px; border-radius: 999px; background: var(--orange); color: #fff; font-size: .7rem; font-weight: 800; }
     .photo .tools { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; gap: 4px; padding: 18px 6px 6px; background: linear-gradient(transparent, rgba(8,12,38,.8)); }
     .tool { width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(255,255,255,.92); color: var(--navy); font-size: .9rem; font-weight: 800; }
     .tool:hover:not(:disabled) { background: var(--orange); color: #fff; }
-    .add { display: grid; place-items: center; aspect-ratio: 3 / 4; border: 2px dashed #c7cddd; border-radius: 12px; color: var(--muted); font-weight: 700; text-align: center; padding: 8px; cursor: pointer; background: #fafbfe; }
+    .add { align-self: start; display: grid; place-items: center; aspect-ratio: 3 / 4; border: 2px dashed #c7cddd; border-radius: 12px; color: var(--muted); font-weight: 700; text-align: center; padding: 8px; cursor: pointer; background: #fafbfe; }
     .add:hover { border-color: var(--orange); color: var(--orange); }
     .add input { display: none; }
     .videos { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
@@ -169,6 +174,8 @@
       return out;
     }
 
+    const pkey = (p) => p.l + '@' + (p.d || '');
+    const today = () => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); };
     const TEXT_KEYS = ['name', 'loc', 'status', 'desc', 'category'];
     const SAVED_KEY = { name: 'name', loc: 'location', status: 'status', desc: 'description', category: 'category' };
 
@@ -197,10 +204,10 @@
     function overrides() {
       const out = { projects: {}, added: [], videos: {} };
       for (const id of state.defaults.order) {
-        const now = state.projects[id].map((p) => p.l).join('|');
+        const now = state.projects[id].map(pkey).join('|');
         const def = state.defaults.projects[id];
         const entry = {};
-        if (now !== def.photos.map((p) => p.l).join('|')) entry.photos = clone(state.projects[id]);
+        if (now !== def.photos.map(pkey).join('|')) entry.photos = clone(state.projects[id]);
         for (const k of TEXT_KEYS) if (state.meta[id][k] !== def[k]) entry[SAVED_KEY[k]] = state.meta[id][k];
         if (Object.keys(entry).length) out.projects[id] = entry;
       }
@@ -249,7 +256,7 @@
           const small = await resizeTo(list[i], 720, 0.78);
           const l = await pushUpload('projects/' + id + '/' + stamp + '.jpg', large, { contentType: 'image/jpeg' });
           const s = await pushUpload('projects/' + id + '/' + stamp + '-s.jpg', small, { contentType: 'image/jpeg' });
-          state.projects[id].push({ l: l.url, s: s.url });
+          state.projects[id].push({ l: l.url, s: s.url, d: today() });
           render();
         }
         state.banner = skipped > 0 ? 'Only ' + room + ' fit (the limit is ' + MAX + '); ' + skipped + ' were left out.' : '';
@@ -372,14 +379,19 @@
 
     function photoTile(id, p, i, count) {
       const dis = !!state.busy;
-      return h('div', { class: 'photo' },
+      const date = h('input', { type: 'date', class: 'pdate', value: p.d || '', max: '2099-12-31', 'aria-label': 'Date shown for picture ' + (i + 1), disabled: dis });
+      date.addEventListener('change', () => { if (date.value) p.d = date.value; else delete p.d; render(); });
+      const row = h('div', { class: 'daterow' }, date,
+        p.d ? h('button', { class: 'tool-link', type: 'button', disabled: dis, onclick: () => { delete p.d; render(); } }, 'Remove date')
+          : h('button', { class: 'tool-link', type: 'button', disabled: dis, onclick: () => { p.d = today(); render(); } }, 'Add date'));
+      return h('div', { class: 'phototile' }, h('div', { class: 'photo' },
         h('img', { src: shown(p.s), alt: 'Picture ' + (i + 1), loading: 'lazy' }),
         i === 0 ? h('span', { class: 'badge' }, 'Cover') : null,
         h('div', { class: 'tools' },
           h('button', { class: 'tool', type: 'button', 'aria-label': 'Move earlier', disabled: dis || i === 0, onclick: () => movePhoto(id, i, -1) }, '←'),
           h('button', { class: 'tool', type: 'button', 'aria-label': 'Move later', disabled: dis || i === count - 1, onclick: () => movePhoto(id, i, 1) }, '→'),
           i > 0 ? h('button', { class: 'tool', type: 'button', 'aria-label': 'Make this the cover', title: 'Make cover', disabled: dis, onclick: () => makeCover(id, i) }, '★') : null,
-          h('button', { class: 'tool', type: 'button', 'aria-label': 'Remove picture', title: 'Remove', disabled: dis, onclick: () => removePhoto(id, i) }, '×')));
+          h('button', { class: 'tool', type: 'button', 'aria-label': 'Remove picture', title: 'Remove', disabled: dis, onclick: () => removePhoto(id, i) }, '×'))), row);
     }
 
     const TYPES = [['development', 'Development'], ['construction', 'Construction'], ['interior', 'Interiors & renovation']];
@@ -414,7 +426,7 @@
     function projectPanel(id) {
       const isNew = state.addedIds.includes(id);
       const def = state.defaults.projects[id], m = state.meta[id], list = state.projects[id];
-      const changed = !isNew && (list.map((p) => p.l).join('|') !== def.photos.map((p) => p.l).join('|') || TEXT_KEYS.some((k) => m[k] !== def[k]));
+      const changed = !isNew && (list.map(pkey).join('|') !== def.photos.map(pkey).join('|') || TEXT_KEYS.some((k) => m[k] !== def[k]));
       const picker = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true, disabled: !!state.busy });
       picker.addEventListener('change', () => { const f = Array.from(picker.files); picker.value = ''; addPhotos(id, f); });
       const type = h('select', { id: 'pc-' + id, disabled: !!state.busy }, TYPES.map(([v, t]) => h('option', { value: v, selected: v === m.category }, t)));

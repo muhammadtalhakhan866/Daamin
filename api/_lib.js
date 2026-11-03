@@ -91,7 +91,14 @@ function cleanPhotos(photos, id) {
   if (photos.length > MAX_PHOTOS) throw new Error('Project ' + id + ' has more than ' + MAX_PHOTOS + ' pictures.');
   return photos.map((p) => {
     if (!p || !okAsset(p.l) || !okAsset(p.s)) throw new Error('Bad picture address in ' + id + '.');
-    return { l: p.l, s: p.s };
+    const out = { l: p.l, s: p.s };
+    /* Optional "added on" date, shown to visitors. Must be a real calendar day. */
+    if (typeof p.d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.d)) {
+      const t = new Date(p.d + 'T00:00:00Z');
+      if (!isNaN(t) && t.toISOString().slice(0, 10) === p.d) out.d = p.d;
+      else throw new Error('Bad date on a picture in ' + id + '.');
+    }
+    return out;
   });
 }
 

@@ -28,6 +28,9 @@ To change the password later, edit the variable and redeploy. Everyone is signed
 - **Project pictures:** add pictures (JPG, PNG or WebP; they are resized in your browser first),
   reorder with the arrows, make one the cover with the star, remove with the cross.
   Each album holds at most 10. The first picture is the cover shown on the project tile.
+  Every picture has a date under it: new uploads get today's date, which visitors see in the
+  picture viewer as "Added 3 weeks ago · 12 Oct 2026". Change it with the date box, or press
+  **Remove date** to show none. Pictures that shipped with the site have no date until you add one.
 - **Featured videos:** replace a video and a thumbnail is taken from it automatically
   (you can upload your own thumbnail instead). Edit the title and description underneath.
   Keep videos under about 70 MB so they start quickly on phones.

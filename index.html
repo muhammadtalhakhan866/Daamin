@@ -209,6 +209,8 @@
     .viewer-info .viewer-note { padding: 11px 13px; border-radius: 12px; border: 1px solid rgba(255,176,138,.38); background: rgba(255,176,138,.12); color: #ffd7c5; font-size: .82rem; }
     .viewer-note[hidden] { display: none; }
     .viewer-enquire { align-self: flex-start; margin-top: 8px; }
+    .viewer-info .viewer-date { margin-top: 14px; color: var(--orange-soft, #ffb48f); font-size: .86rem; font-weight: 700; }
+    .viewer-info .viewer-date span { color: rgba(255,255,255,.6); font-weight: 600; }
     .viewer-info .viewer-count { margin-top: auto; padding-top: 14px; color: rgba(255,255,255,.55); font-size: .8rem; }
     .viewer-close, .viewer-nav { display: grid; place-items: center; width: 42px; height: 42px; padding: 0; cursor: pointer; border-radius: 50%; border: 1px solid rgba(255,255,255,.34); background: rgba(10,16,42,.55); color: #fff; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: background .2s, transform .2s; }
     .viewer-close:hover, .viewer-nav:hover { background: var(--orange); border-color: transparent; }
@@ -819,6 +821,7 @@
         <p id="viewerDesc"></p>
         <p class="viewer-note" id="viewerNote" hidden>Illustrative stock image. This is not a photograph of the project and will be replaced with an authorised one.</p>
         <a class="btn btn-primary viewer-enquire" id="viewerEnquire" href="#contact">Enquire about this project <span aria-hidden="true">&#8599;</span></a>
+        <p class="viewer-date" id="viewerDate" hidden></p>
         <p class="viewer-count" id="viewerCount"></p>
       </div>
     </div>
@@ -951,6 +954,7 @@
       function setPhotos(card, photos) {
         card.dataset.photos = photos.map(function (p) { return p.l; }).join('|');
         card.dataset.smalls = photos.map(function (p) { return p.s; }).join('|');
+        card.dataset.dates = photos.map(function (p) { return p.d || ''; }).join('|');
         var cover = card.querySelector('img');
         if (cover.getAttribute('src') !== photos[0].s) cover.src = photos[0].s;
       }
@@ -1007,6 +1011,7 @@
       var vDesc = document.getElementById('viewerDesc');
       var vNote = document.getElementById('viewerNote');
       var vCount = document.getElementById('viewerCount');
+      var vDate = document.getElementById('viewerDate');
       var vEnquire = document.getElementById('viewerEnquire');
       var vPrev = viewer.querySelector('.viewer-prev');
       var vNext = viewer.querySelector('.viewer-next');
@@ -1019,6 +1024,22 @@
       /* A project may carry several pictures (data-photos, "|" separated); otherwise just its tile picture. */
       function photosOf(card) {
         return card.dataset.photos ? card.dataset.photos.split('|') : [];
+      }
+
+      /* "Added 3 weeks ago" from a YYYY-MM-DD date; the exact day follows it. */
+      function ago(iso) {
+        var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+        if (!m) return '';
+        var then = new Date(+m[1], +m[2] - 1, +m[3]), now = new Date();
+        var days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - then) / 86400000);
+        var exact = then.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        if (days < 0) return exact;
+        var rel = days === 0 ? 'today' : days === 1 ? 'yesterday'
+          : days < 14 ? days + ' days ago'
+          : days < 60 ? Math.floor(days / 7) + ' weeks ago'
+          : days < 730 ? Math.floor(days / 30) + ' months ago'
+          : Math.floor(days / 365) + ' years ago';
+        return { rel: rel, exact: exact };
       }
 
       function show(card, i) {
@@ -1056,6 +1077,15 @@
         vStatus.textContent = card.querySelector('.status').textContent;
         vDesc.textContent = card.querySelector('.project-desc').textContent;
         vNote.hidden = card.dataset.real === 'true';
+        var when = ago((card.dataset.dates || '').split('|')[index]);
+        vDate.hidden = !when;
+        vDate.textContent = '';
+        if (when) {
+          vDate.append('Added ' + when.rel + ' ');
+          var exact = document.createElement('span');
+          exact.textContent = '· ' + when.exact;
+          vDate.append(exact);
+        }
         var list = visibleCards();
         var where = 'Project ' + (list.indexOf(card) + 1) + ' of ' + list.length;
         vCount.textContent = photos.length > 1 ? 'Photo ' + (index + 1) + ' of ' + photos.length + ' · ' + where : where;
