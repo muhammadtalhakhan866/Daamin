@@ -213,7 +213,7 @@
     .viewer-info .viewer-date span { display: block; color: rgba(255,255,255,.6); font-size: .76rem; font-weight: 600; }
     @keyframes date-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
     /* tile: the date slides in while the album is pointed at (always visible where there is no hover) */
-    .project-date { position: absolute; top: 52px; left: 14px; z-index: 2; padding: 5px 10px; border-radius: 999px; background: rgba(10,15,44,.78); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: .01em; backdrop-filter: blur(6px); opacity: 0; transform: translateX(-12px); transition: opacity .35s ease, transform .35s ease; pointer-events: none; }
+    .project-date { position: absolute; bottom: 92px; left: 14px; z-index: 2; padding: 5px 10px; border-radius: 999px; background: rgba(10,15,44,.78); color: #fff; font-size: .7rem; font-weight: 700; letter-spacing: .01em; backdrop-filter: blur(6px); opacity: 0; transform: translateX(-12px); transition: opacity .35s ease, transform .35s ease; pointer-events: none; }
     .project-card:hover .project-date, .project-open:focus-visible .project-date { opacity: 1; transform: none; }
     @media (hover: none) { .project-date { opacity: 1; transform: none; } }
     .viewer-info .viewer-count { margin-top: auto; padding-top: 14px; color: rgba(255,255,255,.55); font-size: .8rem; }
@@ -967,7 +967,7 @@
           chip.className = 'project-date';
           card.querySelector('.project-image').appendChild(chip);
         }
-        chip.textContent = 'Added ' + when.rel;
+        chip.textContent = when.text;
         chip.title = when.exact;
       }
 
@@ -1047,20 +1047,15 @@
         return card.dataset.photos ? card.dataset.photos.split('|') : [];
       }
 
-      /* "Added 3 weeks ago" from a YYYY-MM-DD date; the exact day follows it. */
+      /* "Updated 3 days ago" inside the first week, the exact date after that. */
       function ago(iso) {
         var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
         if (!m) return '';
         var then = new Date(+m[1], +m[2] - 1, +m[3]), now = new Date();
         var days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - then) / 86400000);
         var exact = then.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-        if (days < 0) return exact;
-        var rel = days === 0 ? 'today' : days === 1 ? 'yesterday'
-          : days < 14 ? days + ' days ago'
-          : days < 60 ? Math.floor(days / 7) + ' weeks ago'
-          : days < 730 ? Math.floor(days / 30) + ' months ago'
-          : Math.floor(days / 365) + ' years ago';
-        return { rel: rel, exact: exact };
+        var text = days < 0 || days > 7 ? exact : days === 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago';
+        return { text: 'Updated ' + text, exact: exact };
       }
 
       function show(card, i) {
@@ -1101,12 +1096,7 @@
         var when = ago((card.dataset.dates || '').split('|')[index]);
         vDate.hidden = !when;
         vDate.textContent = '';
-        if (when) {
-          vDate.append('Added ' + when.rel + ' ');
-          var exact = document.createElement('span');
-          exact.textContent = when.exact;
-          vDate.append(exact);
-        }
+        if (when) vDate.textContent = when.text;
         var list = visibleCards();
         var where = 'Project ' + (list.indexOf(card) + 1) + ' of ' + list.length;
         vCount.textContent = photos.length > 1 ? 'Photo ' + (index + 1) + ' of ' + photos.length + ' · ' + where : where;

@@ -30,7 +30,7 @@ To change the password later, edit the variable and redeploy. Everyone is signed
   Each album holds at most 10. The first picture is the cover shown on the project tile.
   Every picture has a date menu under it: **Today's date**, **Choose a date**, or **Don't show a date**.
   New uploads start on today's date. On the site the first picture's date slides in on the project tile when
-  the mouse is over it, and the opened album shows it at the bottom right ("Added 3 weeks ago" with the exact day).
+  the mouse is over it, and the opened album shows it at the bottom right ("Updated 3 days ago" for the first week, the exact date after that).
   Pictures that shipped with the site have no date until you set one.
 - **Featured videos:** replace a video and a thumbnail is taken from it automatically
   (you can upload your own thumbnail instead). Edit the title and description underneath.
