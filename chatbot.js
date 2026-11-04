@@ -281,6 +281,11 @@
       { key: 'Budget range', ask: 'What budget range do you have in mind?', chips: BUDGET, hint: 'or type your own range', ok: function (v) { return v.length > 0; } }
     ] }
   };
+  var validPhone = function (v) { var d = v.replace(/[^\d]/g, ''); return d.length >= 10 && d.length <= 15; };
+  var NAME_STEP = { key: 'Name', field: 'name', ask: 'May I have your name?', hint: 'Your name', ok: plain, err: 'Please tell me your name.' };
+  var PHONE_STEP = { key: 'WhatsApp number', field: 'phone', ask: 'And your WhatsApp number? That way our team can also reach you later.', hint: 'e.g. 0300 1234567', ok: validPhone, err: 'Please enter a valid number with at least 10 digits, for example 0300 1234567.' };
+  FLOWS.agent = { offer: 'Talk to a person', about: 'speaking to someone on your team', intro: 'Of course, I will connect you with our team. First, two quick details so they can reach you.', steps: [] };
+  Object.keys(FLOWS).forEach(function (id) { FLOWS[id].steps.push(NAME_STEP, PHONE_STEP); });
   /* Questions that begin a guided flow on their own, and ones that only offer it afterwards. */
   var FLOW_AUTO = { 'Can I get a cost estimate for construction?': 'estimate', 'How do I buy a property?': 'buy', 'How do I sell my property?': 'sell', 'Do you help with renting?': 'rent', 'How do I list my property with you?': 'sell' };
   var FLOW_OFFER = { 'Can you build my house?': 'estimate', 'How long does construction take?': 'estimate', 'Do you renovate old houses?': 'reno', 'Do you do interior work?': 'reno', 'Do you have houses for sale?': 'buy', 'Do you sell plots?': 'buy', 'Do you have apartments or flats?': 'buy' };
@@ -294,10 +299,10 @@
   var CANCEL = /^(cancel|stop|exit|quit|never ?mind|back|start over|reset)\b/i;
   var SKIP = /^(skip|pass|no|none|n\/a)\b/i;
 
-  function startFlow(id) {
-    flow = { id: id, i: 0, data: [] };
+  function startFlow(id, preset) {
+    flow = { id: id, i: 0, data: preset || [], name: '', phone: '' };
     lastUnanswered = ''; misses = 0; awaitingHandoff = false;
-    speak('Happy to help with ' + FLOWS[id].about + '. I just need a few details so our team can guide you properly. You can type "cancel" at any time.', flowAsk);
+    speak(FLOWS[id].intro || ('Happy to help with ' + FLOWS[id].about + '. I just need a few details so our team can guide you properly. You can type "cancel" at any time.'), flowAsk);
   }
   function flowAsk() {
     var s = FLOWS[flow.id].steps[flow.i];
@@ -311,7 +316,7 @@
   }
   function flowAnswer(value) {
     var f = FLOWS[flow.id], s = f.steps[flow.i];
-    if (value) flow.data.push([s.key, value]);
+    if (value) { flow.data.push([s.key, value]); if (s.field) flow[s.field] = value; }
     flow.i++;
     if (flow.i < f.steps.length) { flowAsk(); return; }
     flowFinish();
@@ -319,7 +324,11 @@
   function flowInput(t) {
     var s = FLOWS[flow.id].steps[flow.i];
     if (CANCEL.test(t)) { endFlow(); reply(function () { say('No problem, I have cancelled that. Pick a topic or type another question.', 'bot'); topics(); }); return; }
-    if (HANDOFF.test(t)) { flowFinish(); return; }
+    if (HANDOFF.test(t)) {
+      var steps = FLOWS[flow.id].steps, at = steps.length - 2;
+      if (flow.i < at) { flow.i = at; speak('Of course. Two quick details first, so our team can reach you.', flowAsk); }
+      return;
+    }
     if (s.optional && SKIP.test(t)) { flowAnswer(''); return; }
     if (s.ok && !s.ok(t)) { reply(function () { say(s.err || 'Sorry, I did not catch that. Please try again.', 'bot'); }); return; }
     flowAnswer(t);
@@ -327,7 +336,7 @@
   function endFlow() { flow = null; input.placeholder = DEFAULT_HINT; }
   /* Everything collected goes into one WhatsApp message that the visitor reviews and sends themselves. */
   function flowFinish() {
-    var f = FLOWS[flow.id], data = flow.data.slice();
+    var f = FLOWS[flow.id], data = flow.data.slice(), who = { name: flow.name, phone: flow.phone };
     endFlow();
     var lines = data.map(function (d) { return d[0] + ': ' + d[1]; });
     var ref = newRef();
@@ -335,7 +344,7 @@
     var url = 'https://wa.me/' + F.whatsapp + '?text=' + encodeURIComponent(msg);
     var finish = function () {
       speak('I have put everything in a WhatsApp message for you. Tap the button below to send it to our team. Nothing is sent on WhatsApp until you press send there, and a copy of these details is kept for our team.', function () {
-        row([linkBtn('Continue on WhatsApp', url, true, function () { logEnquiry({ source: 'chatbot', ref: ref, about: f.about, details: data }); })]);
+        row([linkBtn('Continue on WhatsApp', url, true, function () { logEnquiry({ source: 'chatbot', ref: ref, about: f.about, name: who.name, phone: who.phone, details: data.filter(function (d) { return d[0] !== 'Name' && d[0] !== 'WhatsApp number'; }) }); })]);
         row([chip('Start over', '', function () { say('Start over', 'me'); reply(function () { say('Sure. What would you like to know?', 'bot'); topics(); }); }),
              chip('Ask something else', '', function () { say('Ask something else', 'me'); reply(function () { say('Of course. Type your question, or pick a topic.', 'bot'); topics(); }); })]);
         speak('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.');
@@ -355,17 +364,11 @@
     });
   }
 
-  /* The hand-over: a WhatsApp link with the visitor's last unanswered question ready to send. */
+  /* The hand-over: ask for a name and WhatsApp number, then offer the WhatsApp button (see flowFinish). */
   function connect() {
     awaitingHandoff = false;
     var q = lastUnanswered || lastQuestion;
-    var ref = newRef();
-    var msg = 'Hello Daamin, I was using the website assistant and would like to speak to someone.' + (q ? ' My question: ' + q : '') + '\nRef: ' + ref;
-    var url = 'https://wa.me/' + F.whatsapp + '?text=' + encodeURIComponent(msg);
-    speak('Of course. I will connect you with our team. Tap the button to continue on WhatsApp. Your message is ready, and nothing is sent on WhatsApp until you press send there. A note of your question is kept for our team.', function () {
-      row([linkBtn('Continue on WhatsApp', url, true, function () { logEnquiry({ source: 'chatbot', ref: ref, about: 'Wants to speak to the team', message: q || '' }); })]);
-      speak('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.');
-    });
+    startFlow('agent', q ? [['My question', q]] : []);
   }
 
   /* How sure we are: answer, offer a few guesses, or admit we do not know. Words the FAQ has never seen count against it. */
