@@ -163,10 +163,48 @@
     else a.addEventListener('click', function () { if (window.innerWidth < 760) closePanel(); });
     return a;
   }
+  /* The assistant says one thing at a time: replies queue up so two never talk over each other. */
+  var queue = [], talking = false;
+  function enqueue(job) { queue.push(job); if (!talking) pump(); }
+  function pump() {
+    if (!queue.length) { talking = false; return; }
+    talking = true;
+    queue.shift()(function () { pump(); });
+  }
   /* A short pause with typing dots, then the reply. */
   function reply(fn) {
-    var t = el('div', 'dbot-typing'); t.append(el('i'), el('i'), el('i')); log.appendChild(t); scroll();
-    setTimeout(function () { t.remove(); fn(); }, 420);
+    enqueue(function (done) {
+      var t = el('div', 'dbot-typing'); t.append(el('i'), el('i'), el('i')); log.appendChild(t); scroll();
+      setTimeout(function () { t.remove(); fn(); done(); }, 420);
+    });
+  }
+
+  /* Long replies are sent the way a person would: a few short messages with a pause (and typing dots) before each. */
+  function pieces(text) {
+    if (text.indexOf('\n') >= 0) return [text];                       /* lists and summaries stay together */
+    var safe = text.replace(/e\.g\./g, 'e~g~').replace(/i\.e\./g, 'i~e~');
+    var sentences = safe.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g) || [safe];
+    var out = [], cur = '';
+    sentences.forEach(function (s) {
+      s = s.replace(/~/g, '.').trim();
+      if (!s) return;
+      if (cur && (cur + ' ' + s).length > 105 && out.length < 2) { out.push(cur); cur = s; }
+      else cur = cur ? cur + ' ' + s : s;
+    });
+    if (cur) out.push(cur);
+    return out;
+  }
+  function typing() { var t = el('div', 'dbot-typing'); t.append(el('i'), el('i'), el('i')); log.appendChild(t); scroll(); return t; }
+  function speak(text, then) {
+    var parts = pieces(text);
+    enqueue(function (done) {
+      (function next(i) {
+        if (i >= parts.length) { if (then) then(); done(); return; }
+        var t = typing();
+        var wait = Math.min(1250, 380 + parts[i].length * 11) + (i === 0 ? 0 : 120);
+        setTimeout(function () { t.remove(); say(parts[i], 'bot'); next(i + 1); }, wait);
+      })(0);
+    });
   }
 
   function topics() {
@@ -190,8 +228,7 @@
     showAnswer(d, FLOW_OFFER[d.q]);
   }
   function showAnswer(d, offer) {
-    reply(function () {
-      say(d.a, 'bot');
+    speak(d.a, function () {
       if (d.links.length) row(d.links.map(function (l) { return linkBtn(l[0], l[1]); }));
       var more = [];
       if (offer && FLOWS[offer]) more.push(chip(FLOWS[offer].offer, 'go', function () { say(FLOWS[offer].offer, 'me'); startFlow(offer); }));
@@ -249,25 +286,23 @@
   function startFlow(id) {
     flow = { id: id, i: 0, data: [] };
     lastUnanswered = ''; misses = 0; awaitingHandoff = false;
-    reply(function () {
-      say('Happy to help with ' + FLOWS[id].about + '. I just need a few details so our team can guide you properly. You can type "cancel" at any time.', 'bot');
-      flowAsk();
-    });
+    speak('Happy to help with ' + FLOWS[id].about + '. I just need a few details so our team can guide you properly. You can type "cancel" at any time.', flowAsk);
   }
   function flowAsk() {
     var s = FLOWS[flow.id].steps[flow.i];
-    say(s.ask, 'bot');
-    input.placeholder = s.hint || 'Type your answer...';
-    var opts = [];
-    (s.chips || []).forEach(function (label) { opts.push(chip(label, '', function () { say(label, 'me'); flowAnswer(label); })); });
-    if (s.optional) opts.push(chip('Skip', '', function () { say('Skip', 'me'); flowAnswer(''); }));
-    if (opts.length) row(opts);
+    speak(s.ask, function () {
+      input.placeholder = s.hint || 'Type your answer...';
+      var opts = [];
+      (s.chips || []).forEach(function (label) { opts.push(chip(label, '', function () { say(label, 'me'); flowAnswer(label); })); });
+      if (s.optional) opts.push(chip('Skip', '', function () { say('Skip', 'me'); flowAnswer(''); }));
+      if (opts.length) row(opts);
+    });
   }
   function flowAnswer(value) {
     var f = FLOWS[flow.id], s = f.steps[flow.i];
     if (value) flow.data.push([s.key, value]);
     flow.i++;
-    if (flow.i < f.steps.length) { reply(flowAsk); return; }
+    if (flow.i < f.steps.length) { flowAsk(); return; }
     flowFinish();
   }
   function flowInput(t) {
@@ -286,21 +321,23 @@
     var lines = data.map(function (d) { return d[0] + ': ' + d[1]; });
     var msg = 'Hello Daamin, I used the website assistant and I am interested in ' + f.about + '.' + (lines.length ? '\n' + lines.map(function (l) { return '- ' + l; }).join('\n') : '') + '\nPlease guide me on the next steps.';
     var url = 'https://wa.me/' + F.whatsapp + '?text=' + encodeURIComponent(msg);
-    reply(function () {
-      say(lines.length ? 'Thank you. Here is what I have:\n' + lines.join('\n') : 'Connecting you to our team.', 'bot');
-      say('Tap the button to send this to our team on WhatsApp. It is ready to go, and nothing is sent until you press send there.', 'bot');
-      row([linkBtn('Continue on WhatsApp', url, true)]);
-      row([chip('Start over', '', function () { say('Start over', 'me'); reply(function () { say('Sure. What would you like to know?', 'bot'); topics(); }); }),
-           chip('Ask something else', '', function () { say('Ask something else', 'me'); reply(function () { say('Of course. Type your question, or pick a topic.', 'bot'); topics(); }); })]);
-      say('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.', 'bot');
-    });
+    var finish = function () {
+      speak('I have put everything in a WhatsApp message for you. Tap the button below to send it to our team. Nothing is sent until you press send there.', function () {
+        row([linkBtn('Continue on WhatsApp', url, true)]);
+        row([chip('Start over', '', function () { say('Start over', 'me'); reply(function () { say('Sure. What would you like to know?', 'bot'); topics(); }); }),
+             chip('Ask something else', '', function () { say('Ask something else', 'me'); reply(function () { say('Of course. Type your question, or pick a topic.', 'bot'); topics(); }); })]);
+        speak('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.');
+      });
+    };
+    if (lines.length) speak('Thank you, that is everything I need.', function () { speak('Here is what I have:\n' + lines.join('\n'), finish); });
+    else speak('Of course. Let me connect you with our team.', finish);
   }
+
   function ask(text, quiet) { if (!quiet) lastQuestion = text; say(text, 'me'); }
 
   function offerAgent(reason) {
     awaitingHandoff = true;
-    reply(function () {
-      say(reason, 'bot');
+    speak(reason, function () {
       row([chip('Yes, connect me with an agent', 'go', function () { say('Yes, connect me with an agent', 'me'); connect(); }),
            chip('No, show me topics', '', function () { say('No, show me topics', 'me'); awaitingHandoff = false; reply(function () { say('No problem. Pick a topic or type another question.', 'bot'); topics(); }); })]);
     });
@@ -312,10 +349,9 @@
     var q = lastUnanswered || lastQuestion;
     var msg = 'Hello Daamin, I was using the website assistant and would like to speak to someone.' + (q ? ' My question: ' + q : '');
     var url = 'https://wa.me/' + F.whatsapp + '?text=' + encodeURIComponent(msg);
-    reply(function () {
-      say('Connecting you to our team. Tap the button to continue on WhatsApp. Your message is ready to send, and nothing is sent until you press send there.', 'bot');
+    speak('Of course. I will connect you with our team. Tap the button to continue on WhatsApp. Your message is ready, and nothing is sent until you press send there.', function () {
       row([linkBtn('Continue on WhatsApp', url, true)]);
-      say('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.', 'bot');
+      speak('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.');
     });
   }
 
@@ -352,8 +388,7 @@
     }
     if (kind === 'suggest') {
       lastUnanswered = t;
-      reply(function () {
-        say('I am not completely sure what you mean. Did you mean one of these?', 'bot');
+      speak('I am not completely sure what you mean. Did you mean one of these?', function () {
         row(r.top.map(function (s) { return chip(s.d.q, 'q', function () { ask(s.d.q, true); answer(s.d); }); }));
         row([chip('None of these, connect me with an agent', 'go', function () { say('None of these, connect me with an agent', 'me'); connect(); })]);
       });
@@ -371,8 +406,7 @@
     launch.setAttribute('aria-expanded', 'true');
     if (!started) {
       started = true;
-      say('Hello! I am the Daamin assistant. Ask me about our services, projects, the gallery or how to reach us, or pick a topic.', 'bot');
-      topics();
+      speak('Hello! I am the Daamin assistant. Ask me about our services, projects, the gallery or how to reach us, or pick a topic.', topics);
     }
     setTimeout(function () { input.focus({ preventScroll: true }); }, 60);
   }
