@@ -81,3 +81,6 @@ html.fx-leaving body { opacity: 0; transition: opacity .22s ease; }
 /* sideways entrances must never widen the page */
 body { overflow-x: clip; }
 @media (max-width: 900px) { .rv.rv-l, .rv.rv-r { translate: 0 30px; } .rv.rv-l.in, .rv.rv-r.in { translate: 0 0; } }
+
+/* the map button sits at the bottom of its card, not in the flow (.btn is relative above) */
+.btn.map-show { position: absolute; }
