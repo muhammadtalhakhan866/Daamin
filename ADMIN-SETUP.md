@@ -19,6 +19,12 @@ To change the password later, edit the variable and redeploy. Everyone is signed
 
 ## Using it
 
+- **Enquiries:** every enquiry from the contact form, and every chatbot hand-over (cost estimate, buy, sell, rent,
+  renovation, or "talk to a person"), is listed here with the details the visitor gave. They are logged when the
+  visitor presses the button that opens WhatsApp. Use **Reply on WhatsApp** (when a number was given), then press
+  **I have answered this**. Open ones stay under **Pending**; you can move one back, or delete it. Chatbot
+  enquiries have no phone number, so look for the short reference (for example DQ-7K3F) in your WhatsApp chat.
+  Stored in the private store, so it needs `REVIEWS_READ_WRITE_TOKEN` like reviews do.
 - **Projects:** every project has its own panel. Change the name, the location shown on the tile,
   the status (Completed, Under construction... or leave empty for none), the type (decides which
   filter button it appears under) and the description shown when the picture is opened.

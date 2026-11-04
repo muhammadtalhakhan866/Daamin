@@ -57,6 +57,10 @@
     .daterow { display: flex; flex-direction: column; gap: 3px; }
     .pdate { width: 100%; padding: 6px 8px; border: 1px solid #d5d9e4; border-radius: 9px; background: #fff; color: var(--ink); font-size: .82rem; }
     .gcap { width: 100%; padding: 6px 8px; border: 1px solid #d5d9e4; border-radius: 9px; background: #fff; color: var(--ink); font-size: .8rem; }
+    .enq-grid { display: grid; grid-template-columns: 140px 1fr; gap: 8px 16px; margin: 0; }
+    .enq-grid dt { color: var(--muted); font-weight: 700; font-size: .82rem; }
+    .enq-grid dd { margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
+    @media (max-width: 560px) { .enq-grid { grid-template-columns: 1fr; gap: 2px 0; } .enq-grid dd { margin-bottom: 8px; } }
     .tool-link { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--orange); font-size: .76rem; font-weight: 700; cursor: pointer; text-decoration: underline; }
     .tool-link:disabled { opacity: .5; cursor: default; }
     .photo { position: relative; border-radius: 12px; overflow: hidden; background: #dfe3ee; aspect-ratio: 3 / 4; border: 1px solid var(--line); }
@@ -115,6 +119,7 @@
       meta: {}, addedIds: [],                         /* wording per project, and the ids of projects added here (newest first) */
       saved: '{}',                                    /* last published overrides, as text */
       busy: '', progress: 0, banner: '',
+      enquiries: [], enquiriesLoaded: false, enquiriesError: '', enquiryFilter: 'pending', enquiryWorking: '',
       reviews: [], reviewsLoaded: false, reviewsError: '', reviewsFilter: 'pending', services: [], drafts: {}, working: ''
     };
 
@@ -608,6 +613,73 @@
       btn.disabled = !!state.busy || !dirty;
     }
 
+    /* ---------- enquiries (contact form and chatbot) ---------- */
+    async function loadEnquiries() {
+      try {
+        const data = await api('/api/enquiry-admin');
+        state.enquiries = data.enquiries || []; state.enquiriesError = '';
+      } catch (e) {
+        if (e.status === 401) { state.view = 'login'; state.msg = 'Your session ended. Please log in again.'; }
+        else state.enquiriesError = e.message;
+      }
+      state.enquiriesLoaded = true; render();
+    }
+    const enquiriesPending = () => state.enquiries.filter((e) => e.status === 'pending').length;
+
+    async function enquiryAction(item, action) {
+      if (action === 'delete' && !confirm('Delete this enquiry permanently? This cannot be undone.')) return;
+      try {
+        state.enquiryWorking = item.id; render();
+        const res = await api('/api/enquiry-admin', { method: 'POST', body: JSON.stringify({ id: item.id, action }) });
+        if (res.deleted) state.enquiries = state.enquiries.filter((x) => x.id !== item.id);
+        else state.enquiries = state.enquiries.map((x) => (x.id === item.id ? res.enquiry : x));
+        state.banner = { answered: 'Marked as answered.', pending: 'Moved back to pending.', delete: 'Deleted.' }[action];
+      } catch (e) {
+        if (e.status === 401) { state.view = 'login'; state.msg = 'Your session ended. Please log in again.'; }
+        else state.banner = e.message;
+      }
+      state.enquiryWorking = ''; render();
+    }
+
+    function enquiryPanel(e) {
+      const busy = !!state.enquiryWorking, when = new Date(e.createdAt).toLocaleString();
+      const rows = [];
+      const add = (k, v) => { if (v) rows.push(h('dt', {}, k), h('dd', {}, v)); };
+      add('Interested in', e.interest || e.about);
+      add('Project', e.project);
+      add('Email', e.email);
+      add('Message', e.message);
+      (e.details || []).forEach((d) => add(d[0], d[1]));
+      const act = (label, action, cls) => h('button', { class: 'btn btn-small ' + (cls || 'btn-ghost'), type: 'button', disabled: busy, onclick: () => enquiryAction(e, action) }, label);
+      return h('section', { class: 'panel enq ' + e.status },
+        h('div', { class: 'panel-head' },
+          h('div', {}, h('h2', {}, e.name || 'Chatbot enquiry'), h('small', {}, (e.source === 'chatbot' ? 'Via the chatbot' : 'Via the contact form') + ' \u00b7 ' + when + (e.ref ? ' \u00b7 Ref ' + e.ref : ''))),
+          h('span', { class: 'count' + (e.status === 'pending' ? ' full' : '') }, e.status === 'pending' ? 'Pending' : 'Answered' + (e.answeredAt ? ' ' + new Date(e.answeredAt).toLocaleDateString() : ''))),
+        e.phone
+          ? h('div', { class: 'rv-contact' }, h('span', {}, 'Phone / WhatsApp: ', h('b', {}, '+' + e.phone)),
+              h('a', { class: 'btn btn-ghost btn-small', href: 'https://wa.me/' + encodeURIComponent(e.phone), target: '_blank', rel: 'noopener' }, 'Reply on WhatsApp'))
+          : h('p', { class: 'note', style: 'margin:0 0 10px' }, 'No phone number was given. They will message you on WhatsApp from their own number: look for ' + (e.ref ? 'Ref ' + e.ref : 'their message') + ' in the chat.'),
+        rows.length ? h('dl', { class: 'enq-grid' }, rows) : null,
+        h('div', { class: 'vrow', style: 'margin-top:12px' },
+          e.status === 'pending' ? act('I have answered this', 'answered', 'btn-primary') : act('Move back to pending', 'pending'),
+          act('Delete', 'delete')));
+    }
+
+    function enquiriesView() {
+      const f = state.enquiryFilter;
+      const counts = { pending: 0, answered: 0, all: state.enquiries.length };
+      state.enquiries.forEach((e) => { counts[e.status] = (counts[e.status] || 0) + 1; });
+      const chip = (key, label) => h('button', { class: 'tab', type: 'button', 'aria-selected': String(f === key), onclick: () => { state.enquiryFilter = key; render(); } }, label + ' (' + counts[key] + ')');
+      const list = state.enquiries.filter((e) => f === 'all' || e.status === f);
+      return h('div', {},
+        h('p', { class: 'note', style: 'margin:0 0 14px' }, 'Enquiries from the contact form and the chatbot appear here when a visitor presses the button that opens WhatsApp. Reply on WhatsApp, then mark it answered. Anyone who opened WhatsApp but did not press send will also show here.'),
+        h('div', { class: 'tabs' }, chip('pending', 'Pending'), chip('answered', 'Answered'), chip('all', 'All')),
+        state.enquiriesError ? h('p', { class: 'msg' }, state.enquiriesError) : null,
+        !state.enquiriesLoaded ? h('p', { class: 'note' }, 'Loading...') : null,
+        state.enquiriesLoaded && !state.enquiriesError && !list.length ? h('p', { class: 'note' }, f === 'pending' ? 'Nothing is waiting for an answer.' : 'Nothing here yet.') : null,
+        list.map(enquiryPanel));
+    }
+
     /* ---------- customer reviews ---------- */
     async function loadReviews() {
       try {
@@ -692,16 +764,18 @@
     }
 
     function mainView() {
-      const tab = (key, label) => h('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': String(state.tab === key), onclick: () => { state.tab = key; if (key === 'reviews' && !state.reviewsLoaded) loadReviews(); else render(); } }, label);
+      const tab = (key, label) => h('button', { class: 'tab', type: 'button', role: 'tab', 'aria-selected': String(state.tab === key), onclick: () => { state.tab = key; if (key === 'enquiries') { render(); loadEnquiries(); } else if (key === 'reviews' && !state.reviewsLoaded) loadReviews(); else render(); } }, label);
       return h('div', {},
         h('header', { class: 'top' }, h('div', { class: 'wrap' },
           h('h1', {}, 'Daamin ', h('span', {}, 'Admin')),
           h('nav', {}, h('a', { href: '../', target: '_blank', rel: 'noopener' }, 'View site'),
             h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: logout }, 'Log out')))),
         h('main', { class: 'wrap' },
-          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Projects'), tab('gallery', 'Gallery'), tab('videos', 'Featured videos'), tab('reviews', 'Customer reviews' + (pendingCount() ? ' (' + pendingCount() + ' new)' : ''))),
+          h('div', { class: 'tabs', role: 'tablist' }, tab('enquiries', 'Enquiries' + (enquiriesPending() ? ' (' + enquiriesPending() + ' pending)' : '')), tab('projects', 'Projects'), tab('gallery', 'Gallery'), tab('videos', 'Featured videos'), tab('reviews', 'Customer reviews' + (pendingCount() ? ' (' + pendingCount() + ' new)' : ''))),
           state.banner ? h('p', { class: 'msg ok', role: 'status', style: 'margin:0 0 14px' }, state.banner) : null,
-          state.tab === 'projects'
+          state.tab === 'enquiries'
+            ? enquiriesView()
+            : state.tab === 'projects'
             ? [h('div', { class: 'addrow' }, h('button', { class: 'btn btn-primary', type: 'button', disabled: !!state.busy, onclick: newProject }, '+ Add a new project'), h('small', {}, 'New projects appear first on the site.')),
                ...state.addedIds.concat(state.defaults.order).map(projectPanel)]
             : state.tab === 'gallery'
@@ -709,7 +783,7 @@
               : state.tab === 'videos'
                 ? h('div', { class: 'videos' }, Object.keys(state.defaults.videos).map(videoPanel))
                 : reviewsView()),
-        state.tab === 'reviews' ? null : barView());
+        state.tab === 'reviews' || state.tab === 'enquiries' ? null : barView());
     }
 
     function render() {
@@ -724,6 +798,7 @@
       state.defaults = defaults; startEditing(saved || {});
       state.view = 'main'; state.msg = ''; state.banner = ''; render();
       loadReviews(); /* in the background, so the tab can show how many are waiting */
+      loadEnquiries();
     }
 
     window.addEventListener('beforeunload', (e) => { if (state.view === 'main' && (state.busy || isDirty())) { e.preventDefault(); e.returnValue = ''; } });

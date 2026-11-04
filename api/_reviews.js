@@ -106,9 +106,9 @@ async function publish() {
 
 /* Per-visitor limit kept in the private store, so it holds across serverless instances. The visitor is
    only ever a hash, and a counter is per hour. Returns true when the visitor is over the limit. */
-async function overLimit(ip, limit) {
+async function overLimit(ip, limit, ns) {
   const hour = new Date().toISOString().slice(0, 13).replace(/[-T]/g, '');
-  const key = 'rl/' + crypto.createHash('sha256').update(ip + '|daamin-reviews').digest('hex').slice(0, 24) + '-' + hour + '.json';
+  const key = 'rl/' + crypto.createHash('sha256').update(ip + '|daamin-' + (ns || 'reviews')).digest('hex').slice(0, 24) + '-' + hour + '.json';
   let n = 0;
   try {
     const res = await get(key, { access: 'private', token: privateToken(), useCache: false });

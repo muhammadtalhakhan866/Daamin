@@ -841,7 +841,8 @@
               <div class="field full"><label for="message">Message *</label><textarea id="message" name="message" required placeholder="Please tell us a little about your requirements."></textarea></div>
             </div>
             <button class="btn btn-primary" type="submit">Prepare WhatsApp Enquiry ↗</button>
-            <p class="form-note">This form opens WhatsApp with your message ready to send. Nothing is sent until you press send there. See our <a href="privacy.html" style="text-decoration:underline">Privacy Policy</a>.</p>
+            <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+            <p class="form-note">Pressing the button opens WhatsApp with your message ready to send, and nothing is sent on WhatsApp until you press send there. We also keep a copy of these details so our team can follow up. See our <a href="privacy.html" style="text-decoration:underline">Privacy Policy</a>.</p>
             <p id="formStatus" role="status" aria-live="polite" class="form-note"></p>
           </form>
         </div>
@@ -1361,6 +1362,8 @@
       const interest = String(data.get('interest') || '').trim();
       const project = String(data.get('project') || '').trim();
       const message = String(data.get('message') || '').trim();
+      /* A short reference, in both the WhatsApp message and the saved copy, so the team can match them. */
+      const ref = 'DQ-' + Math.random().toString(36).slice(2, 6).toUpperCase().padEnd(4, 'X');
       const body = [
         'Assalam-o-Alaikum, Daamin Estate & Builder.',
         '',
@@ -1370,10 +1373,18 @@
         email ? 'Email: ' + email : '',
         'Interest: ' + interest,
         project ? 'Project: ' + project : '',
-        'Message: ' + message
+        'Message: ' + message,
+        'Ref: ' + ref
       ].filter(Boolean).join('\n');
       const url = 'https://wa.me/923219281965?text=' + encodeURIComponent(body);
       document.getElementById('formStatus').textContent = 'Opening WhatsApp with your enquiry. Please review and send the message there.';
+      /* Keep a copy for the team, so they can see who may be waiting for a reply. */
+      try {
+        fetch('/api/enquiries', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+          source: 'form', ref: ref, name: name, phone: phone, email: email, interest: interest,
+          project: project, message: message, website: String(data.get('website') || '')
+        }) }).catch(function () {});
+      } catch (e) { /* the WhatsApp message still opens */ }
       window.open(url, '_blank', 'noopener,noreferrer');
     });
     /* Featured reels: nothing plays until a reel is hovered (or tapped). The thumbnail

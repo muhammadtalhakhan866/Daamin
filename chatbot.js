@@ -157,9 +157,20 @@
   }
   function chip(label, cls, fn) { var b = el('button', 'dbot-chip' + (cls ? ' ' + cls : ''), label); b.type = 'button'; b.addEventListener('click', fn); return b; }
   function href(url) { return onHome ? url.replace(/^index\.html(?=#)/, '') : url; }
-  function linkBtn(label, url, go) {
+  /* The WhatsApp button: when it is pressed, a copy of the enquiry is kept for the team (once per button). */
+  function newRef() { return 'DQ-' + Math.random().toString(36).slice(2, 6).toUpperCase().padEnd(4, 'X'); }
+  function logEnquiry(record) {
+    try {
+      fetch('/api/enquiries', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) }).catch(function () {});
+    } catch (e) { /* the WhatsApp message still opens */ }
+  }
+  function linkBtn(label, url, go, onGo) {
     var a = el('a', 'dbot-link' + (go ? ' go' : ''), label); a.href = go ? url : href(url);
-    if (go) { a.target = '_blank'; a.rel = 'noopener'; }
+    if (go) {
+      a.target = '_blank'; a.rel = 'noopener';
+      var sent = false;
+      a.addEventListener('click', function () { if (!sent && onGo) { sent = true; onGo(); } });
+    }
     else a.addEventListener('click', function () { if (window.innerWidth < 760) closePanel(); });
     return a;
   }
@@ -319,11 +330,12 @@
     var f = FLOWS[flow.id], data = flow.data.slice();
     endFlow();
     var lines = data.map(function (d) { return d[0] + ': ' + d[1]; });
-    var msg = 'Hello Daamin, I used the website assistant and I am interested in ' + f.about + '.' + (lines.length ? '\n' + lines.map(function (l) { return '- ' + l; }).join('\n') : '') + '\nPlease guide me on the next steps.';
+    var ref = newRef();
+    var msg = 'Hello Daamin, I used the website assistant and I am interested in ' + f.about + '.' + (lines.length ? '\n' + lines.map(function (l) { return '- ' + l; }).join('\n') : '') + '\nPlease guide me on the next steps.\nRef: ' + ref;
     var url = 'https://wa.me/' + F.whatsapp + '?text=' + encodeURIComponent(msg);
     var finish = function () {
-      speak('I have put everything in a WhatsApp message for you. Tap the button below to send it to our team. Nothing is sent until you press send there.', function () {
-        row([linkBtn('Continue on WhatsApp', url, true)]);
+      speak('I have put everything in a WhatsApp message for you. Tap the button below to send it to our team. Nothing is sent on WhatsApp until you press send there, and a copy of these details is kept for our team.', function () {
+        row([linkBtn('Continue on WhatsApp', url, true, function () { logEnquiry({ source: 'chatbot', ref: ref, about: f.about, details: data }); })]);
         row([chip('Start over', '', function () { say('Start over', 'me'); reply(function () { say('Sure. What would you like to know?', 'bot'); topics(); }); }),
              chip('Ask something else', '', function () { say('Ask something else', 'me'); reply(function () { say('Of course. Type your question, or pick a topic.', 'bot'); topics(); }); })]);
         speak('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.');
@@ -347,10 +359,11 @@
   function connect() {
     awaitingHandoff = false;
     var q = lastUnanswered || lastQuestion;
-    var msg = 'Hello Daamin, I was using the website assistant and would like to speak to someone.' + (q ? ' My question: ' + q : '');
+    var ref = newRef();
+    var msg = 'Hello Daamin, I was using the website assistant and would like to speak to someone.' + (q ? ' My question: ' + q : '') + '\nRef: ' + ref;
     var url = 'https://wa.me/' + F.whatsapp + '?text=' + encodeURIComponent(msg);
-    speak('Of course. I will connect you with our team. Tap the button to continue on WhatsApp. Your message is ready, and nothing is sent until you press send there.', function () {
-      row([linkBtn('Continue on WhatsApp', url, true)]);
+    speak('Of course. I will connect you with our team. Tap the button to continue on WhatsApp. Your message is ready, and nothing is sent on WhatsApp until you press send there. A note of your question is kept for our team.', function () {
+      row([linkBtn('Continue on WhatsApp', url, true, function () { logEnquiry({ source: 'chatbot', ref: ref, about: 'Wants to speak to the team', message: q || '' }); })]);
       speak('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.');
     });
   }
