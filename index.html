@@ -466,6 +466,7 @@
       .footer-grid { gap: 25px; }
     }
   </style>
+  <link rel="stylesheet" href="effects.css" />
 </head>
 <body>
   <div class="topbar">
@@ -507,6 +508,11 @@
             <a class="btn btn-outline" href="#contact">Talk to Our Team</a>
           </div>
           <div class="hero-note">A Karachi-focused real estate and construction company.</div>
+          <div class="hero-stats" aria-label="Daamin at a glance">
+            <div><b data-count="11">11</b><span>Projects in our portfolio</span></div>
+            <div><b data-count="6">6</b><span>Service areas</span></div>
+            <div><b>Karachi</b><span>Where we work</span></div>
+          </div>
         </div>
         <div class="hero-visual">
           <div class="hero-photo">
@@ -517,6 +523,8 @@
         </div>
       </div>
     </section>
+
+    <div class="fx-band" aria-label="Our services"><div class="fx-track" aria-hidden="true"><span>Real Estate Services</span><span>Construction &amp; Building</span><span>Property Development</span><span>Property Investment Guidance</span><span>Renovation &amp; Interiors</span><span>Project Sales &amp; Marketing</span><span>Real Estate Services</span><span>Construction &amp; Building</span><span>Property Development</span><span>Property Investment Guidance</span><span>Renovation &amp; Interiors</span><span>Project Sales &amp; Marketing</span></div></div>
 
     <div class="trust-strip">
       <div class="container trust-grid">
@@ -1688,6 +1696,7 @@
 
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
+  <script src="effects.js" defer></script>
   <script src="faq-data.js" defer></script>
   <script src="chatbot.js" defer></script>
 </body>

@@ -31,6 +31,7 @@
     .p-sum ul { margin: 8px 0 0; }
     @media (max-width: 860px) { .p-wrap { grid-template-columns: 1fr; gap: 24px; } .p-toc { position: static; } }
   </style>
+  <link rel="stylesheet" href="effects.css" />
 </head>
 <body>
   <header>
@@ -162,6 +163,7 @@
     const menuToggle = document.getElementById('menuToggle'), navLinks = document.getElementById('navLinks');
     menuToggle.addEventListener('click', () => menuToggle.setAttribute('aria-expanded', String(navLinks.classList.toggle('open'))));
   </script>
+  <script src="effects.js" defer></script>
   <script src="faq-data.js" defer></script>
   <script src="chatbot.js" defer></script>
 </body>

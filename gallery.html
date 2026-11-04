@@ -74,6 +74,7 @@
     }
     @media (prefers-reduced-motion: reduce) { .g-item { transition: none; opacity: 1; transform: none; } .lb *, .lb::backdrop { animation: none !important; } }
   </style>
+  <link rel="stylesheet" href="effects.css" />
 </head>
 <body>
   <header>
@@ -275,6 +276,7 @@
     fetch('/api/content', { credentials: 'omit' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}))
       .then((c) => { ITEMS = Object.assign({}, DEFAULTS, (c && c.gallery) || {}); build(); });
   </script>
+  <script src="effects.js" defer></script>
   <script src="faq-data.js" defer></script>
   <script src="chatbot.js" defer></script>
 </body>

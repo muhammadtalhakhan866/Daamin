@@ -1,0 +1,83 @@
+/* Motion and interaction layer for the Daamin pages. Everything here is decoration: with
+   JavaScript off, or with "reduce motion" set, the pages read exactly as they did before. */
+
+/* ---------- scroll progress + back to top ---------- */
+.fx-progress { position: fixed; z-index: 60; left: 0; top: 0; height: 3px; width: 100%; background: linear-gradient(90deg, #ee652d, #ffb08a); transform-origin: 0 50%; transform: scaleX(var(--p, 0)); pointer-events: none; }
+.fx-top { position: fixed; z-index: 35; left: 20px; bottom: 22px; width: 46px; height: 46px; display: grid; place-items: center; border: 0; border-radius: 50%; background: #121942; color: #fff; cursor: pointer; box-shadow: 0 10px 30px rgba(18,25,66,.3); opacity: 0; transform: translateY(16px) scale(.8); pointer-events: none; transition: opacity .3s ease, transform .35s cubic-bezier(.34,1.56,.64,1), background .2s; }
+.fx-top.show { opacity: 1; transform: none; pointer-events: auto; }
+.fx-top:hover { background: #ee652d; transform: translateY(-3px); }
+.fx-top svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+
+/* header slides away while reading down and returns on the way up */
+header { transition: transform .35s ease, box-shadow .3s ease; }
+header.fx-hide { transform: translateY(-100%); }
+header.fx-solid { box-shadow: 0 8px 30px rgba(18,25,66,.08); }
+
+/* ---------- hero ---------- */
+.hero { --px: 0; --py: 0; --mx: 70%; --my: 30%; }
+.hero-glow { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(520px circle at var(--mx) var(--my), rgba(238,101,45,.20), transparent 62%); opacity: 0; transition: opacity .5s ease; }
+.hero:hover .hero-glow { opacity: 1; }
+.hero:before { translate: calc(var(--px) * -34px) calc(var(--py) * -34px); transition: translate .25s ease-out; }
+.hero:after { content: ""; position: absolute; left: -120px; bottom: -150px; width: 380px; height: 380px; border-radius: 50%; border: 1px solid rgba(238,101,45,.28); box-shadow: 0 0 0 40px rgba(238,101,45,.05); translate: calc(var(--px) * 26px) calc(var(--py) * 26px); transition: translate .25s ease-out; pointer-events: none; animation: fxSpin 40s linear infinite; }
+@keyframes fxSpin { to { rotate: 360deg; } }
+.hero-visual { transform-style: preserve-3d; will-change: transform; transition: transform .25s ease-out; }
+.hero-photo img { animation: fxKen 22s ease-in-out infinite alternate; transform-origin: 60% 70%; }
+@keyframes fxKen { from { transform: scale(1); } to { transform: scale(1.09) translate(-1.5%, -1%); } }
+.hero-photo:before { content: ""; position: absolute; inset: 0; z-index: 1; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 30%), rgba(255,255,255,.22), transparent 45%); opacity: 0; transition: opacity .3s; pointer-events: none; }
+.hero-visual:hover .hero-photo:before { opacity: 1; }
+.floating-card { animation: fxBob 5s ease-in-out infinite; translate: calc(var(--px) * 18px) calc(var(--py) * 14px); }
+@keyframes fxBob { 50% { transform: translateY(-9px); } }
+
+/* headline words rise in one after another */
+.wsplit .w { display: inline-block; opacity: 0; transform: translateY(.55em) rotate(2.5deg); animation: fxWord .75s cubic-bezier(.22,1,.36,1) forwards; animation-delay: calc(var(--i) * 85ms + 120ms); }
+@keyframes fxWord { to { opacity: 1; transform: none; } }
+.hero .eyebrow, .hero .hero-copy, .hero .hero-actions, .hero .hero-note, .hero .hero-stats { animation: fxFade .8s ease both; }
+.hero .eyebrow { animation-delay: .05s; } .hero .hero-copy { animation-delay: .55s; } .hero .hero-actions { animation-delay: .7s; } .hero .hero-note { animation-delay: .85s; } .hero .hero-stats { animation-delay: .95s; }
+@keyframes fxFade { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+.hero-stats { display: flex; flex-wrap: wrap; gap: 14px 34px; margin-top: 30px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.14); }
+.hero-stats div { min-width: 90px; }
+.hero-stats b { display: block; font-size: 1.7rem; line-height: 1.1; letter-spacing: -.03em; color: #fff; }
+.hero-stats b small { color: #ee652d; font-size: 1.1rem; }
+.hero-stats span { display: block; margin-top: 2px; color: rgba(255,255,255,.62); font-size: .78rem; letter-spacing: .02em; }
+
+/* ---------- services band ---------- */
+.fx-band { overflow: hidden; background: #fff; border-bottom: 1px solid var(--line, #e7e9ef); padding: 15px 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
+.fx-track { display: flex; width: max-content; gap: 0; animation: fxMarquee 38s linear infinite; }
+.fx-band:hover .fx-track { animation-play-state: paused; }
+.fx-track span { flex: none; display: inline-flex; align-items: center; gap: 28px; padding-right: 28px; color: #121942; font-size: .82rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+.fx-track span:after { content: "\2726"; color: #ee652d; font-size: .9rem; }
+@keyframes fxMarquee { to { transform: translateX(-50%); } }
+
+/* ---------- reveal on scroll ---------- */
+.rv { opacity: 0; translate: 0 30px; transition: opacity .75s ease, translate .75s cubic-bezier(.22,1,.36,1); transition-delay: var(--d, 0s); }
+.rv.in { opacity: 1; translate: 0 0; }
+.rv.rv-l { translate: -34px 0; } .rv.rv-r { translate: 34px 0; }
+.rv.rv-l.in, .rv.rv-r.in { translate: 0 0; }
+
+/* ---------- tilt, glare, buttons ---------- */
+.tilt { transition: transform .18s ease-out, box-shadow .3s ease; will-change: transform; }
+.tilt:after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%), rgba(238,101,45,.16), transparent 55%); opacity: 0; transition: opacity .3s; }
+.tilt:hover:after { opacity: 1; }
+.btn { position: relative; overflow: hidden; }
+.fx-ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,.4); transform: scale(0); animation: fxRipple .7s ease-out forwards; pointer-events: none; }
+@keyframes fxRipple { to { transform: scale(1); opacity: 0; } }
+
+/* ---------- page fade ---------- */
+body { animation: fxPage .5s ease both; }
+@keyframes fxPage { from { opacity: 0; } to { opacity: 1; } }
+html.fx-leaving body { opacity: 0; transition: opacity .22s ease; }
+
+@media (max-width: 760px) { .hero:after { display: none; } .hero-stats { gap: 12px 24px; } .fx-top { left: 14px; bottom: 16px; } }
+@media (prefers-reduced-motion: reduce) {
+  .wsplit .w, .hero .eyebrow, .hero .hero-copy, .hero .hero-actions, .hero .hero-note, .hero .hero-stats, body { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .hero-photo img, .floating-card, .hero:after, .fx-track { animation: none !important; }
+  .rv { opacity: 1 !important; translate: none !important; transition: none !important; }
+}
+
+/* the headline's words are spans now; keep "better" the only orange one */
+.hero h1 .w { color: inherit; }
+
+/* sideways entrances must never widen the page */
+body { overflow-x: clip; }
+@media (max-width: 900px) { .rv.rv-l, .rv.rv-r { translate: 0 30px; } .rv.rv-l.in, .rv.rv-r.in { translate: 0 0; } }
