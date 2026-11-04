@@ -56,6 +56,7 @@
     .phototile { display: flex; flex-direction: column; gap: 6px; }
     .daterow { display: flex; flex-direction: column; gap: 3px; }
     .pdate { width: 100%; padding: 6px 8px; border: 1px solid #d5d9e4; border-radius: 9px; background: #fff; color: var(--ink); font-size: .82rem; }
+    .gcap { width: 100%; padding: 6px 8px; border: 1px solid #d5d9e4; border-radius: 9px; background: #fff; color: var(--ink); font-size: .8rem; }
     .tool-link { align-self: flex-start; padding: 0; border: 0; background: none; color: var(--orange); font-size: .76rem; font-weight: 700; cursor: pointer; text-decoration: underline; }
     .tool-link:disabled { opacity: .5; cursor: default; }
     .photo { position: relative; border-radius: 12px; overflow: hidden; background: #dfe3ee; aspect-ratio: 3 / 4; border: 1px solid var(--line); }
@@ -108,7 +109,8 @@
 
     const state = {
       view: 'login', tab: 'projects', msg: '', configured: true,
-      defaults: { projects: {}, order: [], videos: {} },
+      defaults: { projects: {}, order: [], videos: {}, gallery: { categories: [], items: {} } },
+      gallery: {},                                    /* inspiration gallery, per category, as being edited */
       projects: {}, videos: {},                       /* what is being edited right now */
       meta: {}, addedIds: [],                         /* wording per project, and the ids of projects added here (newest first) */
       saved: '{}',                                    /* last published overrides, as text */
@@ -171,17 +173,37 @@
           desc: card.querySelector('.video-body p').textContent
         };
       });
+      out.gallery = await loadGalleryDefaults();
       return out;
     }
 
+    /* The built-in gallery lives in gallery-data.js as Unsplash photo ids; turn them into the same
+       {l, s, t, p} shape that is saved when something is changed. */
+    const unsplash = (id, q) => 'https://images.unsplash.com/' + id + '?auto=format&' + q;
+    async function loadGalleryDefaults() {
+      try {
+        const text = await (await fetch('../gallery-data.js', { cache: 'no-cache' })).text();
+        const box = {}; new Function('window', text)(box);
+        const G = box.GALLERY, items = {};
+        for (const c of G.categories) items[c.key] = G.photos[c.key].map((p) => ({ l: unsplash(p[0], 'w=1800&q=82'), s: unsplash(p[0], 'fit=crop&w=720&q=75'), t: p[1], p: p[2] }));
+        return { categories: G.categories, items };
+      } catch (e) { return { categories: [], items: {} }; }
+    }
+
     const picking = new Set(); /* pictures whose date is being chosen by hand */
+    const galleryKey = (list) => list.map((p) => p.l + '@' + (p.t || '')).join('|');
+    const MAX_GAL = 40;
     const pkey = (p) => p.l + '@' + (p.d || '');
     const today = () => { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); };
     const TEXT_KEYS = ['name', 'loc', 'status', 'desc', 'category'];
     const SAVED_KEY = { name: 'name', loc: 'location', status: 'status', desc: 'description', category: 'category' };
 
     function startEditing(saved) {
-      state.projects = {}; state.videos = {}; state.meta = {}; state.addedIds = [];
+      state.projects = {}; state.videos = {}; state.meta = {}; state.addedIds = []; state.gallery = {};
+      for (const c of state.defaults.gallery.categories) {
+        const own = saved.gallery && saved.gallery[c.key];
+        state.gallery[c.key] = clone(own || state.defaults.gallery.items[c.key]);
+      }
       for (const id of state.defaults.order) {
         const own = saved.projects && saved.projects[id];
         const def = state.defaults.projects[id];
@@ -203,7 +225,10 @@
 
     /* Only what differs from the built-in site is stored. */
     function overrides() {
-      const out = { projects: {}, added: [], videos: {} };
+      const out = { projects: {}, added: [], gallery: {}, videos: {} };
+      for (const c of state.defaults.gallery.categories) {
+        if (galleryKey(state.gallery[c.key]) !== galleryKey(state.defaults.gallery.items[c.key])) out.gallery[c.key] = clone(state.gallery[c.key]);
+      }
       for (const id of state.defaults.order) {
         const now = state.projects[id].map(pkey).join('|');
         const def = state.defaults.projects[id];
@@ -477,6 +502,70 @@
           list.length < MAX ? h('label', { class: 'add' }, h('span', {}, '+ Add pictures', h('br'), h('small', {}, (MAX - list.length) + ' more allowed')), picker) : null));
     }
 
+    /* ---------- inspiration gallery ---------- */
+    async function addGalleryPhotos(key, files) {
+      const room = MAX_GAL - state.gallery[key].length;
+      const list = Array.from(files).slice(0, room);
+      if (!list.length) return;
+      const skipped = files.length - list.length;
+      try {
+        for (let i = 0; i < list.length; i++) {
+          state.busy = 'Uploading picture ' + (i + 1) + ' of ' + list.length + '...'; state.progress = 0; paintBar();
+          const stamp = Date.now() + '-' + i;
+          const large = await resizeTo(list[i], 1800, 0.82);
+          const small = await resizeTo(list[i], 720, 0.78);
+          const l = await pushUpload('gallery/' + key + '/' + stamp + '.jpg', large, { contentType: 'image/jpeg' });
+          const sm = await pushUpload('gallery/' + key + '/' + stamp + '-s.jpg', small, { contentType: 'image/jpeg' });
+          state.gallery[key].unshift({ l: l.url, s: sm.url, t: '' });
+          render();
+        }
+        state.banner = skipped > 0 ? 'Only ' + room + ' fit (the limit is ' + MAX_GAL + '); ' + skipped + ' were left out.' : '';
+      } catch (e) { state.banner = e.message; }
+      state.busy = ''; render();
+    }
+    function moveGallery(key, i, by) {
+      const list = state.gallery[key], j = i + by;
+      if (j < 0 || j >= list.length) return;
+      [list[i], list[j]] = [list[j], list[i]]; render();
+    }
+    function galleryFirst(key, i) { const [p] = state.gallery[key].splice(i, 1); state.gallery[key].unshift(p); render(); }
+    function removeGallery(key, i) { state.gallery[key].splice(i, 1); render(); }
+
+    function galleryTile(key, p, i, count) {
+      const dis = !!state.busy;
+      const cap = h('input', { type: 'text', class: 'gcap', maxlength: 120, value: p.t || '', placeholder: 'Caption (optional)', 'aria-label': 'Caption for picture ' + (i + 1), disabled: dis });
+      cap.addEventListener('input', () => { p.t = cap.value; paintBar(); });
+      return h('div', { class: 'phototile' }, h('div', { class: 'photo' },
+        h('img', { src: shown(p.s), alt: p.t || 'Gallery picture ' + (i + 1), loading: 'lazy' }),
+        i === 0 ? h('span', { class: 'badge' }, 'First') : null,
+        h('div', { class: 'tools' },
+          h('button', { class: 'tool', type: 'button', 'aria-label': 'Move earlier', disabled: dis || i === 0, onclick: () => moveGallery(key, i, -1) }, '\u2190'),
+          h('button', { class: 'tool', type: 'button', 'aria-label': 'Move later', disabled: dis || i === count - 1, onclick: () => moveGallery(key, i, 1) }, '\u2192'),
+          i > 0 ? h('button', { class: 'tool', type: 'button', 'aria-label': 'Move to the front', title: 'Show first', disabled: dis, onclick: () => galleryFirst(key, i) }, '\u2605') : null,
+          h('button', { class: 'tool', type: 'button', 'aria-label': 'Remove picture', title: 'Remove', disabled: dis, onclick: () => removeGallery(key, i) }, '\u00d7'))), cap);
+    }
+
+    function galleryPanel(c) {
+      const key = c.key, list = state.gallery[key];
+      const changed = galleryKey(list) !== galleryKey(state.defaults.gallery.items[key]);
+      const picker = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', multiple: true, disabled: !!state.busy });
+      picker.addEventListener('change', () => { const f = Array.from(picker.files); picker.value = ''; addGalleryPhotos(key, f); });
+      return h('section', { class: 'panel' },
+        h('div', { class: 'panel-head' },
+          h('div', {}, h('h2', {}, c.name), h('small', {}, c.blurb)),
+          h('div', { class: 'vrow' },
+            h('span', { class: 'count' + (list.length >= MAX_GAL ? ' full' : '') }, list.length + ' / ' + MAX_GAL + ' pictures'),
+            changed ? h('button', { class: 'btn btn-ghost btn-small', type: 'button', disabled: !!state.busy, onclick: () => { state.gallery[key] = clone(state.defaults.gallery.items[key]); render(); } }, 'Reset to original') : null)),
+        h('div', { class: 'photos' },
+          list.length < MAX_GAL ? h('label', { class: 'add' }, h('span', {}, '+ Add pictures', h('br'), h('small', {}, (MAX_GAL - list.length) + ' more allowed')), picker) : null,
+          list.map((p, i) => galleryTile(key, p, i, list.length))));
+    }
+
+    function galleryView() {
+      return [h('p', { class: 'note', style: 'margin:0 0 16px' }, 'These pictures appear on the Gallery page and on the home page tiles. New pictures are added at the front of a category. Add a caption to show a title when the picture is opened.'),
+        ...state.defaults.gallery.categories.map(galleryPanel)];
+    }
+
     function videoPanel(slot) {
       const v = state.videos[slot], def = state.defaults.videos[slot];
       const changed = ['src', 'poster', 'title', 'desc'].some((k) => v[k] !== def[k]);
@@ -610,14 +699,16 @@
           h('nav', {}, h('a', { href: '../', target: '_blank', rel: 'noopener' }, 'View site'),
             h('button', { class: 'btn btn-ghost btn-small', type: 'button', onclick: logout }, 'Log out')))),
         h('main', { class: 'wrap' },
-          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Projects'), tab('videos', 'Featured videos'), tab('reviews', 'Customer reviews' + (pendingCount() ? ' (' + pendingCount() + ' new)' : ''))),
+          h('div', { class: 'tabs', role: 'tablist' }, tab('projects', 'Projects'), tab('gallery', 'Gallery'), tab('videos', 'Featured videos'), tab('reviews', 'Customer reviews' + (pendingCount() ? ' (' + pendingCount() + ' new)' : ''))),
           state.banner ? h('p', { class: 'msg ok', role: 'status', style: 'margin:0 0 14px' }, state.banner) : null,
           state.tab === 'projects'
             ? [h('div', { class: 'addrow' }, h('button', { class: 'btn btn-primary', type: 'button', disabled: !!state.busy, onclick: newProject }, '+ Add a new project'), h('small', {}, 'New projects appear first on the site.')),
                ...state.addedIds.concat(state.defaults.order).map(projectPanel)]
-            : state.tab === 'videos'
-              ? h('div', { class: 'videos' }, Object.keys(state.defaults.videos).map(videoPanel))
-              : reviewsView()),
+            : state.tab === 'gallery'
+              ? galleryView()
+              : state.tab === 'videos'
+                ? h('div', { class: 'videos' }, Object.keys(state.defaults.videos).map(videoPanel))
+                : reviewsView()),
         state.tab === 'reviews' ? null : barView());
     }
 

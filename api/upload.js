@@ -18,8 +18,8 @@ module.exports = async function upload(req, res) {
       request: req,
       onBeforeGenerateToken: async (pathname) => {
         const video = /^videos\//.test(pathname);
-        const image = /^projects\//.test(pathname) || /^thumbs\//.test(pathname);
-        if (!video && !image) throw new Error('Uploads must go in projects/, thumbs/ or videos/.');
+        const image = /^projects\//.test(pathname) || /^thumbs\//.test(pathname) || /^gallery\//.test(pathname);
+        if (!video && !image) throw new Error('Uploads must go in projects/, gallery/, thumbs/ or videos/.');
         if (!/^[A-Za-z0-9._\/-]{3,160}$/.test(pathname) || pathname.includes('..')) throw new Error('Bad file name.');
         return {
           allowedContentTypes: video ? VIDEO_TYPES : IMAGE_TYPES,

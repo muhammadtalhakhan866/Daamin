@@ -96,6 +96,7 @@
         <p><b>Enquiries.</b> The enquiry form asks for your name, phone number, an optional email address, what you are interested in, an optional project, and your message. This form does not send anything to our servers. It prepares a message in WhatsApp for you to review and send yourself. Nothing reaches us until you press send in WhatsApp, and WhatsApp then handles the message under its own terms and privacy policy.</p>
         <p><b>Reviews.</b> If you write a review, we ask for your name, your WhatsApp number, the service you used, a star rating and your review text. Your name, rating, service and text may be shown on the website after our team has read the review. Your WhatsApp number is stored privately, is never displayed on the website, and is used only so that we can contact you about your review if we need to. We may correct spelling or typing mistakes before a review is shown.</p>
         <p><b>Technical information.</b> When you visit, our hosting provider automatically records standard information such as your IP address, browser type and the pages requested, for security and reliability. To limit spam, a short-lived counter linked to a scrambled (hashed) form of your IP address is kept when you submit a review. The password-protected staff area uses a login cookie for staff only. Visitors receive no tracking or advertising cookies from us.</p>
+        <p><b>Assistant.</b> The website assistant answers common questions from information stored on the page. What you type there is not sent to us or saved. If you choose to continue on WhatsApp, a message is prepared for you to review, and nothing is sent until you press send.</p>
         <p><b>What we do not ask for.</b> Please do not send your CNIC number, bank or card details, passwords or other sensitive identity documents through the website form, a review, or an unsolicited WhatsApp message. If such details are ever needed for a transaction, they are handled through a proper agreement, not this website.</p>
 
         <h2 id="use">3. How we use it</h2>
@@ -115,6 +116,7 @@
         <ul>
           <li><b>Hosting and storage providers</b> that run this website and store review data on our behalf. Their servers may be located outside Pakistan.</li>
           <li><b>WhatsApp</b> (operated by Meta), when you send an enquiry or when we message you about a review.</li>
+          <li><b>Google Maps</b>, if you press "Show map" in the Contact section. The map is not loaded until you ask for it, and when it loads, Google receives your IP address and browser details as with any embedded map. The "Get directions" links simply open Google Maps in a new tab.</li>
           <li><b>Unsplash</b>, from whose servers the gallery pictures load. When your browser fetches them, Unsplash can see your IP address, as with any website image.</li>
           <li><b>Our own team and project partners</b>, only as needed to answer your enquiry.</li>
           <li><b>Authorities or courts</b>, where the law requires it.</li>
@@ -149,7 +151,7 @@
         </div>
         <div><h4>Explore</h4><div class="footer-links"><a href="index.html#services">Services</a><a href="index.html#projects">Projects</a><a href="gallery.html">Gallery</a><a href="index.html#about">About Us</a></div></div>
         <div><h4>Company</h4><div class="footer-links"><a href="index.html#contact">Contact</a><a href="index.html#contact">Project Enquiries</a><a href="privacy.html">Privacy Policy</a></div></div>
-        <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a></div></div>
+        <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a><a href="https://www.google.com/maps/search/?api=1&query=24.9707921,67.1342949" target="_blank" rel="noopener">Elaaf Tower, Scheme 33, Karachi</a></div></div>
       </div>
       <div class="footer-bottom"><span>© <span id="year"></span> Daamin Estate & Builder. All rights reserved.</span><span>DAAMIN BUILDS BETTER</span></div>
     </div>
@@ -160,5 +162,7 @@
     const menuToggle = document.getElementById('menuToggle'), navLinks = document.getElementById('navLinks');
     menuToggle.addEventListener('click', () => menuToggle.setAttribute('aria-expanded', String(navLinks.classList.toggle('open'))));
   </script>
+  <script src="faq-data.js" defer></script>
+  <script src="chatbot.js" defer></script>
 </body>
 </html>

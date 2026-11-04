@@ -134,7 +134,7 @@
         </div>
         <div><h4>Explore</h4><div class="footer-links"><a href="index.html#services">Services</a><a href="index.html#projects">Projects</a><a href="gallery.html">Gallery</a><a href="index.html#about">About Us</a></div></div>
         <div><h4>Company</h4><div class="footer-links"><a href="index.html#contact">Contact</a><a href="index.html#contact">Project Enquiries</a><a href="privacy.html">Privacy Policy</a></div></div>
-        <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a></div></div>
+        <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a><a href="https://www.google.com/maps/search/?api=1&query=24.9707921,67.1342949" target="_blank" rel="noopener">Elaaf Tower, Scheme 33, Karachi</a></div></div>
       </div>
       <div class="footer-bottom"><span>© <span id="year"></span> Daamin Estate & Builder. All rights reserved.</span><span>DAAMIN BUILDS BETTER</span></div>
     </div>
@@ -148,43 +148,54 @@
     menuToggle.addEventListener('click', () => menuToggle.setAttribute('aria-expanded', String(navLinks.classList.toggle('open'))));
 
     const G = window.GALLERY;
-    const thumb = (id) => 'https://images.unsplash.com/' + id + '?auto=format&fit=crop&w=720&q=75';
-    const full = (id) => 'https://images.unsplash.com/' + id + '?auto=format&w=1800&q=82';
+    /* Built-in pictures (Unsplash) in the same {l: large, s: small, t: caption, p: Unsplash page} shape the admin saves. */
+    const un = (id, q) => 'https://images.unsplash.com/' + id + '?auto=format&' + q;
+    const DEFAULTS = {};
+    G.categories.forEach((c) => { DEFAULTS[c.key] = G.photos[c.key].map((p) => ({ l: un(p[0], 'w=1800&q=82'), s: un(p[0], 'fit=crop&w=720&q=75'), t: p[1], p: p[2] })); });
+    let ITEMS = DEFAULTS;
     const tabs = document.getElementById('tabs'), cats = document.getElementById('cats');
     const buttons = {};   /* category key -> thumbnail buttons, in order */
+    const titleOf = (cat, ph) => ph.t || G.categories.find((c) => c.key === cat).name;
 
-    G.categories.forEach((cat) => {
-      const list = G.photos[cat.key];
-      const tab = document.createElement('a');
-      tab.href = '#' + cat.key; tab.dataset.key = cat.key;
-      tab.append(cat.name);
-      const small = document.createElement('small'); small.textContent = list.length; tab.append(small);
-      tabs.append(tab);
+    function build() {
+      G.categories.forEach((cat) => {
+        const list = ITEMS[cat.key] || [];
+        if (!list.length) return;
+        const tab = document.createElement('a');
+        tab.href = '#' + cat.key; tab.dataset.key = cat.key;
+        tab.append(cat.name);
+        const small = document.createElement('small'); small.textContent = list.length; tab.append(small);
+        tabs.append(tab);
 
-      const sec = document.createElement('section'); sec.className = 'g-cat'; sec.id = cat.key;
-      const h = document.createElement('h2'); h.textContent = cat.name;
-      const p = document.createElement('p'); p.textContent = cat.blurb;
-      const grid = document.createElement('div'); grid.className = 'g-grid';
-      buttons[cat.key] = list.map((ph, i) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'g-item';
-        b.setAttribute('aria-label', 'Open picture: ' + ph[1]);
-        const img = document.createElement('img'); img.src = thumb(ph[0]); img.alt = ph[1]; img.loading = i < 4 ? 'eager' : 'lazy'; img.decoding = 'async';
-        const cap = document.createElement('span'); cap.className = 'g-cap'; cap.textContent = ph[1];
-        b.append(img, cap); grid.append(b);
-        b.addEventListener('click', () => openAt(cat.key, i));
-        return b;
+        const sec = document.createElement('section'); sec.className = 'g-cat'; sec.id = cat.key;
+        const h = document.createElement('h2'); h.textContent = cat.name;
+        const p = document.createElement('p'); p.textContent = cat.blurb;
+        const grid = document.createElement('div'); grid.className = 'g-grid';
+        buttons[cat.key] = list.map((ph, i) => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = 'g-item';
+          b.setAttribute('aria-label', 'Open picture: ' + titleOf(cat.key, ph));
+          const img = document.createElement('img'); img.src = ph.s; img.alt = titleOf(cat.key, ph); img.loading = i < 4 ? 'eager' : 'lazy'; img.decoding = 'async';
+          b.append(img);
+          if (ph.t) { const cap = document.createElement('span'); cap.className = 'g-cap'; cap.textContent = ph.t; b.append(cap); }
+          grid.append(b);
+          b.addEventListener('click', () => openAt(cat.key, i));
+          return b;
+        });
+        sec.append(h, p, grid); cats.append(sec);
       });
-      sec.append(h, p, grid); cats.append(sec);
-    });
 
-    /* Pictures rise into place as they scroll into view. */
-    const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -6% 0px' }) : null;
-    document.querySelectorAll('.g-item').forEach((el, i) => { if (io) { el.style.transitionDelay = (i % 6) * 60 + 'ms'; io.observe(el); } else el.classList.add('in'); });
+      /* Pictures rise into place as they scroll into view. */
+      const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -6% 0px' }) : null;
+      document.querySelectorAll('.g-item').forEach((el, i) => { if (io) { el.style.transitionDelay = (i % 6) * 60 + 'ms'; io.observe(el); } else el.classList.add('in'); });
 
-    /* The tab for the category on screen lights up. */
-    const tabEls = Array.from(tabs.children);
-    const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) tabEls.forEach((t) => t.classList.toggle('on', t.dataset.key === e.target.id)); }), { rootMargin: '-35% 0px -60% 0px' });
-    document.querySelectorAll('.g-cat').forEach((s) => spy.observe(s));
+      /* The tab for the category on screen lights up. */
+      const tabEls = Array.from(tabs.children);
+      const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) tabEls.forEach((t) => t.classList.toggle('on', t.dataset.key === e.target.id)); }), { rootMargin: '-35% 0px -60% 0px' });
+      document.querySelectorAll('.g-cat').forEach((s) => spy.observe(s));
+
+      /* A link such as gallery.html#interiors scrolls straight to that category. */
+      if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) setTimeout(() => t.scrollIntoView(), 50); }
+    }
 
     /* Viewer */
     const lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg');
@@ -193,16 +204,18 @@
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function paint(dir) {
-      const list = G.photos[curCat], ph = list[curI];
-      lbTitle.textContent = ph[1];
+      const list = ITEMS[curCat], ph = list[curI];
+      lbTitle.textContent = titleOf(curCat, ph);
       lbCount.textContent = G.categories.find((c) => c.key === curCat).name + ' · ' + (curI + 1) + ' of ' + list.length;
-      lbSrc.href = 'https://unsplash.com/photos/' + ph[2];
-      lbImg.alt = ph[1];
-      lbImg.src = thumb(ph[0]);           /* already cached from the grid: appears at once */
+      /* Only the built-in photographs have an Unsplash page to link to. */
+      lbSrc.hidden = !ph.p; lbSrc.previousSibling && (lbSrc.previousSibling.textContent = ph.p ? ' · ' : '');
+      if (ph.p) lbSrc.href = 'https://unsplash.com/photos/' + ph.p;
+      lbImg.alt = titleOf(curCat, ph);
+      lbImg.src = ph.s;                   /* already cached from the grid: appears at once */
       const sharp = new Image();
-      sharp.onload = () => { if (G.photos[curCat][curI] === ph) lbImg.src = full(ph[0]); };
-      sharp.src = full(ph[0]);
-      [1, -1].forEach((d) => { const n = list[(curI + d + list.length) % list.length]; new Image().src = thumb(n[0]); });
+      sharp.onload = () => { if (ITEMS[curCat][curI] === ph) lbImg.src = ph.l; };
+      sharp.src = ph.l;
+      [1, -1].forEach((d) => { const n = list[(curI + d + list.length) % list.length]; new Image().src = n.s; });
       if (dir) {
         lbImg.style.setProperty('--dx', dir * 36 + 'px');
         lbImg.classList.remove('swap'); void lbImg.offsetWidth; lbImg.classList.add('swap');
@@ -229,7 +242,7 @@
     }
 
     function step(d) {
-      const n = G.photos[curCat].length;
+      const n = ITEMS[curCat].length;
       curI = (curI + d + n) % n;
       paint(d);
     }
@@ -258,8 +271,11 @@
     lb.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
     lb.addEventListener('touchend', (e) => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); }, { passive: true });
 
-    /* A link such as gallery.html#interiors scrolls straight to that category. */
-    if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) setTimeout(() => t.scrollIntoView(), 50); }
+    /* Use whatever the admin has saved; if it cannot be reached, show the built-in pictures. */
+    fetch('/api/content', { credentials: 'omit' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}))
+      .then((c) => { ITEMS = Object.assign({}, DEFAULTS, (c && c.gallery) || {}); build(); });
   </script>
+  <script src="faq-data.js" defer></script>
+  <script src="chatbot.js" defer></script>
 </body>
 </html>

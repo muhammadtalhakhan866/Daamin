@@ -32,6 +32,12 @@ To change the password later, edit the variable and redeploy. Everyone is signed
   New uploads start on today's date. On the site the first picture's date slides in on the project tile when
   the mouse is over it, and the opened album shows it at the bottom right ("Updated 3 days ago" for the first week, the exact date after that).
   Pictures that shipped with the site have no date until you set one.
+- **Gallery:** the inspiration pictures on the Gallery page, in five categories (up to 40 each). Add your own
+  pictures with **+ Add pictures** (they appear first), reorder with the arrows, press the star to show one first,
+  remove with the cross, and type a caption to show a title when the picture is opened. **Reset to original** puts
+  the built-in pictures back. The home page tiles use each category's first picture and its count. The note at the
+  bottom of the Gallery page says the pictures are references and not Daamin's own work, so if you fill a category
+  with your own photographs, tell me and I will change that wording.
 - **Featured videos:** replace a video and a thumbnail is taken from it automatically
   (you can upload your own thumbnail instead). Edit the title and description underneath.
   Keep videos under about 70 MB so they start quickly on phones.

@@ -368,6 +368,14 @@
     .contact-info { background: var(--navy); color: white; padding: 34px; border-radius: 22px; }
     .contact-info h2 { color: white; font-size: 2.2rem; }
     .contact-info p { color: rgba(255,255,255,.72); }
+    .map-card { position: relative; margin-top: 24px; height: 230px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1b2563, #0d1335); border: 1px solid rgba(255,255,255,.14); }
+    .map-ph { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 2px; padding-bottom: 38px; color: rgba(255,255,255,.85); text-align: center; background: repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0 14px, transparent 14px 28px); }
+    .map-ph span { font-size: 2rem; animation: mapBob 2.6s ease-in-out infinite; }
+    .map-ph small { color: rgba(255,255,255,.6); }
+    @keyframes mapBob { 50% { transform: translateY(-6px); } }
+    .map-show { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); padding: 10px 20px; font-size: .88rem; }
+    .map-card iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; animation: mapIn .5s ease; }
+    @keyframes mapIn { from { opacity: 0; } to { opacity: 1; } }
     .contact-detail { display: flex; gap: 13px; align-items: flex-start; margin-top: 23px; }
     .contact-detail b { display: block; font-size: .92rem; }
     .contact-detail a, .contact-detail span { color: rgba(255,255,255,.75); font-size: .9rem; overflow-wrap: anywhere; }
@@ -807,7 +815,11 @@
             <div class="contact-detail"><span aria-hidden="true">☎</span><div><b>Call us</b><a href="tel:+923219281965">+92 321 9281965</a><br><a href="tel:+923353800608">+92 335 3800608</a></div></div>
             <div class="contact-detail"><span aria-hidden="true">↗</span><div><b>Website</b><a href="https://www.daamin.com" target="_blank" rel="noopener">www.daamin.com</a></div></div>
             <div class="contact-detail"><span aria-hidden="true">◎</span><div><b>Social media</b><a href="https://www.instagram.com/daaminestatebuilder/" target="_blank" rel="noopener">Instagram</a> · <a href="https://www.facebook.com/Daaminbuildersandmarketing" target="_blank" rel="noopener">Facebook</a><br><a href="https://www.linkedin.com/company/daaminestateandbuilder" target="_blank" rel="noopener">LinkedIn</a> · <a href="https://www.youtube.com/@daaminProperties" target="_blank" rel="noopener">YouTube</a></div></div>
-            <div class="contact-detail"><span aria-hidden="true">⌖</span><div><b>Location</b><span>Karachi, Sindh, Pakistan<br>Confirm official office address before publishing.</span></div></div>
+            <div class="contact-detail"><span aria-hidden="true">⌖</span><div><b>Office</b><span>Daamin Estate &amp; Builder<br>Elaaf Tower, Sector 19-A, Kathiawar Society, Scheme 33, Karachi 75330, Pakistan</span><br><a href="https://www.google.com/maps/dir/?api=1&destination=24.9707921,67.1342949" target="_blank" rel="noopener">Get directions &#8599;</a> · <a href="https://www.google.com/maps/search/?api=1&query=24.9707921,67.1342949" target="_blank" rel="noopener">Open in Google Maps</a></div></div>
+            <div class="map-card" id="mapCard">
+              <div class="map-ph"><span aria-hidden="true">&#128205;</span><b>Elaaf Tower, Scheme 33</b><small>Karachi</small></div>
+              <button class="btn btn-primary map-show" type="button" id="mapShow">Show map</button>
+            </div>
           </div>
           <form class="contact-form" id="contactForm">
             <h3 style="color:var(--navy);margin-bottom:8px">Send an enquiry</h3>
@@ -845,7 +857,7 @@
         </div>
         <div><h4>Explore</h4><div class="footer-links"><a href="#services">Services</a><a href="#projects">Projects</a><a href="#gallery">Gallery</a><a href="#about">About Us</a></div></div>
         <div><h4>Company</h4><div class="footer-links"><a href="#contact">Contact</a><a href="#contact">Careers</a><a href="#contact">Project Enquiries</a><a href="privacy.html">Privacy Policy</a></div></div>
-        <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a><a href="https://www.daamin.com" target="_blank" rel="noopener">www.daamin.com</a><a href="https://www.youtube.com/@daaminProperties" target="_blank" rel="noopener">YouTube · @daaminProperties</a></div></div>
+        <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a><a href="https://www.google.com/maps/search/?api=1&query=24.9707921,67.1342949" target="_blank" rel="noopener">Elaaf Tower, Scheme 33, Karachi</a><a href="https://www.daamin.com" target="_blank" rel="noopener">www.daamin.com</a><a href="https://www.youtube.com/@daaminProperties" target="_blank" rel="noopener">YouTube · @daaminProperties</a></div></div>
       </div>
       <div class="footer-bottom"><span>© <span id="year"></span> Daamin Estate & Builder. All rights reserved.</span><span>DAAMIN BUILDS BETTER</span></div>
     </div>
@@ -1012,6 +1024,32 @@
         if (contact) contact.scrollIntoView({ behavior: 'smooth' });
       });
     })();
+
+    /* The map loads only when asked for, so Google receives nothing until then. */
+    (function () {
+      const btn = document.getElementById('mapShow'), card = document.getElementById('mapCard');
+      if (!btn || !card) return;
+      btn.addEventListener('click', () => {
+        const f = document.createElement('iframe');
+        f.src = 'https://maps.google.com/maps?q=24.9707921,67.1342949&z=17&output=embed';
+        f.title = 'Map showing the Daamin Estate & Builder office at Elaaf Tower, Scheme 33, Karachi';
+        f.loading = 'lazy'; f.referrerPolicy = 'no-referrer-when-downgrade'; f.allowFullscreen = true;
+        card.replaceChildren(f);
+      });
+    })();
+
+    /* Home gallery tiles follow the pictures saved in the admin: cover = first picture, count = how many. */
+    contentReady.then((content) => {
+      const saved = (content && content.gallery) || {};
+      document.querySelectorAll('a.gallery-item[href^="gallery.html#"]').forEach((tile) => {
+        const list = saved[tile.getAttribute('href').split('#')[1]];
+        if (!Array.isArray(list)) return;
+        if (!list.length) { tile.hidden = true; return; }
+        const img = tile.querySelector('img'), count = tile.querySelector('small');
+        if (img && img.getAttribute('src') !== list[0].s) img.src = list[0].s;
+        if (count) count.textContent = list.length + (list.length === 1 ? ' idea' : ' ideas');
+      });
+    });
 
     document.querySelectorAll('.filter').forEach(button => {
       button.addEventListener('click', () => {
@@ -1650,5 +1688,7 @@
 
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
+  <script src="faq-data.js" defer></script>
+  <script src="chatbot.js" defer></script>
 </body>
 </html>

@@ -74,8 +74,10 @@ function sameSiteWrite(req) {
 
 const BLOB_URL = /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/[^\s"'<>]+$/;
 const SITE_PATH = /^(images|videos)\/[A-Za-z0-9._-]+$/;
+/* Gallery pictures that ship with the site are free-to-use Unsplash photographs, addressed by photo id. */
+const UNSPLASH_URL = /^https:\/\/images\.unsplash\.com\/photo-[0-9a-f-]+\?[A-Za-z0-9=&._%-]{0,120}$/;
 function okAsset(v) {
-  return typeof v === 'string' && v.length < 700 && (BLOB_URL.test(v) || SITE_PATH.test(v));
+  return typeof v === 'string' && v.length < 700 && (BLOB_URL.test(v) || SITE_PATH.test(v) || UNSPLASH_URL.test(v));
 }
 const isBlobUrl = (v) => typeof v === 'string' && BLOB_URL.test(v);
 
@@ -85,6 +87,8 @@ function text(v, max) {
 
 /* Accepts only the shape the site understands, so nothing arbitrary is stored or later rendered. */
 const CATEGORIES = ['development', 'construction', 'interior'];
+const GALLERY_KEYS = ['architecture', 'developments', 'construction', 'interiors', 'details'];
+const MAX_GALLERY = 40;   /* pictures per gallery category */
 
 function cleanPhotos(photos, id) {
   if (!Array.isArray(photos) || photos.length < 1) throw new Error('Project ' + id + ' needs at least one picture.');
@@ -121,7 +125,7 @@ function cleanProjectText(src, id, out, requireName) {
 
 function cleanContent(input) {
   if (!input || typeof input !== 'object') throw new Error('Content must be an object.');
-  const out = { projects: {}, added: [], videos: {} };
+  const out = { projects: {}, added: [], gallery: {}, videos: {} };
 
   /* Built-in projects: new pictures and/or new wording. */
   const projects = input.projects && typeof input.projects === 'object' ? input.projects : {};
@@ -150,6 +154,20 @@ function cleanContent(input) {
     out.added.push(entry);
   }
 
+  /* Inspiration gallery: a category listed here replaces the built-in pictures for that category. */
+  const gallery = input.gallery && typeof input.gallery === 'object' ? input.gallery : {};
+  for (const key of Object.keys(gallery)) {
+    if (!GALLERY_KEYS.includes(key)) throw new Error('Unknown gallery category: ' + key);
+    const list = gallery[key];
+    if (!Array.isArray(list) || list.length > MAX_GALLERY) throw new Error('Gallery category ' + key + ' can hold up to ' + MAX_GALLERY + ' pictures.');
+    out.gallery[key] = list.map((p) => {
+      if (!p || !okAsset(p.l) || !okAsset(p.s)) throw new Error('Bad picture address in the gallery (' + key + ').');
+      const item = { l: p.l, s: p.s, t: text(p.t, 120) };
+      if (typeof p.p === 'string' && /^[A-Za-z0-9_-]{1,160}$/.test(p.p)) item.p = p.p;
+      return item;
+    });
+  }
+
   const videos = input.videos && typeof input.videos === 'object' ? input.videos : {};
   const slots = Object.keys(videos);
   if (slots.length > 12) throw new Error('Too many videos.');
@@ -171,10 +189,13 @@ function blobUrlsIn(content) {
   for (const proj of (content && content.added) || []) {
     for (const p of proj.photos || []) { add(p.l); add(p.s); }
   }
+  for (const key of Object.keys((content && content.gallery) || {})) {
+    for (const p of content.gallery[key] || []) { add(p.l); add(p.s); }
+  }
   for (const slot of Object.keys((content && content.videos) || {})) {
     add(content.videos[slot].src); add(content.videos[slot].poster);
   }
   return urls;
 }
 
-module.exports = { COOKIE, MAX_AGE, MAX_PHOTOS, configured, sign, isAdmin, cookieHeader, send, sameSiteWrite, cleanContent, blobUrlsIn, readCookie };
+module.exports = { COOKIE, MAX_AGE, MAX_PHOTOS, MAX_GALLERY, GALLERY_KEYS, configured, sign, isAdmin, cookieHeader, send, sameSiteWrite, cleanContent, blobUrlsIn, readCookie };
