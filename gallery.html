@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#121942" />
+  <!-- TEMPORARY: same as the home page. Delete this tag when the site is ready to appear in search results. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" sizes="64x64" href="images/favicon.png" />
+  <meta name="description" content="Home design inspiration from Daamin Estate & Builder: architecture, developments, construction, interiors and property details to pick a style from." />
+  <title>Inspiration Gallery | Daamin Estate & Builder</title>
+  <link rel="stylesheet" href="page.css" />
+  <style>
+    .g-hero { padding: 64px 0 26px; }
+    .g-hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); color: var(--navy); margin-bottom: 14px; }
+    .g-hero .lead { max-width: 720px; color: var(--muted); font-size: 1.05rem; margin: 0; }
+    .g-tabs { position: sticky; top: 78px; z-index: 10; background: rgba(255,255,255,.94); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+    .g-tabs .container { display: flex; gap: 8px; overflow-x: auto; padding: 12px 0; scrollbar-width: none; }
+    .g-tabs a { flex: none; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--navy); font-size: .88rem; font-weight: 750; transition: background .2s, color .2s, border-color .2s, transform .2s; }
+    .g-tabs a:hover { transform: translateY(-1px); border-color: var(--orange); }
+    .g-tabs a.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .g-tabs small { opacity: .65; font-weight: 700; margin-left: 4px; }
+    .g-cat { padding: 52px 0 8px; scroll-margin-top: 140px; }
+    .g-cat h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 6px; }
+    .g-cat p { color: var(--muted); margin: 0 0 22px; max-width: 640px; }
+    .g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); grid-auto-rows: 200px; grid-auto-flow: dense; gap: 14px; }
+    .g-item { position: relative; display: block; padding: 0; border: 0; border-radius: 16px; overflow: hidden; background: #e8ebf2; cursor: zoom-in; opacity: 0; transform: translateY(22px) scale(.97); transition: opacity .6s ease, transform .6s cubic-bezier(.22,1,.36,1), box-shadow .3s ease; -webkit-tap-highlight-color: transparent; }
+    .g-item.in { opacity: 1; transform: none; }
+    .g-item:nth-child(7n+1) { grid-row: span 2; }
+    .g-item:nth-child(7n+5) { grid-column: span 2; }
+    .g-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s cubic-bezier(.22,1,.36,1), filter .4s ease; }
+    .g-item:hover { box-shadow: var(--shadow); }
+    .g-item:hover img { transform: scale(1.07); }
+    .g-item:after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(transparent, rgba(18,25,66,.7)); opacity: 0; transition: opacity .3s ease; }
+    .g-item:hover:after, .g-item:focus-visible:after { opacity: 1; }
+    .g-cap { position: absolute; z-index: 1; left: 14px; right: 14px; bottom: 12px; color: #fff; font-size: .84rem; font-weight: 700; text-align: left; opacity: 0; transform: translateY(8px); transition: opacity .3s ease, transform .3s ease; }
+    .g-item:hover .g-cap, .g-item:focus-visible .g-cap { opacity: 1; transform: none; }
+    .g-item:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+    .g-note { margin: 46px 0 70px; padding: 14px 16px; border-radius: 12px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); font-size: .86rem; }
+    .g-note a { color: var(--navy); font-weight: 750; text-decoration: underline; }
+    /* Viewer: the picture grows out of the thumbnail that was clicked. */
+    .lb { width: 100vw; max-width: 100vw; height: 100vh; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; color: #fff; background: transparent; overflow: hidden; }
+    .lb::backdrop { background: rgba(6,10,32,.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+    .lb[open]::backdrop { animation: lbFade .35s ease; }
+    .lb.closing::backdrop { animation: lbFade .25s ease reverse forwards; }
+    @keyframes lbFade { from { opacity: 0; } to { opacity: 1; } }
+    html.lb-open { overflow: hidden; }
+    .lb-stage { position: absolute; inset: 0 0 96px; display: grid; place-items: center; padding: 56px 72px 0; }
+    .lb-img { max-width: 100%; max-height: calc(100vh - 160px); max-height: calc(100dvh - 160px); width: auto; height: auto; object-fit: contain; border-radius: 14px; box-shadow: 0 30px 90px rgba(0,0,0,.55); will-change: transform; }
+    .lb-img.swap { animation: lbSwap .4s cubic-bezier(.22,1,.36,1); }
+    @keyframes lbSwap { from { opacity: 0; transform: translateX(var(--dx, 30px)) scale(.97); } to { opacity: 1; transform: none; } }
+    .lb-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 96px; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 0 28px; animation: lbUp .5s .15s ease both; }
+    @keyframes lbUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .lb-info { min-width: 0; }
+    .lb-title { margin: 0; font-weight: 750; font-size: 1rem; }
+    .lb-meta { margin: 3px 0 0; color: rgba(255,255,255,.62); font-size: .82rem; }
+    .lb-meta a { text-decoration: underline; }
+    .lb-actions { display: flex; align-items: center; gap: 12px; flex: none; }
+    .lb-btn { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; border: 1px solid rgba(255,255,255,.34); background: rgba(10,16,42,.55); color: #fff; cursor: pointer; transition: background .2s, transform .2s; }
+    .lb-btn:hover { background: var(--orange); border-color: transparent; transform: scale(1.06); }
+    .lb-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .lb-close { position: absolute; top: 16px; right: 18px; z-index: 2; }
+    .lb-prev, .lb-next { position: absolute; top: calc(50% - 70px); z-index: 2; }
+    .lb-prev { left: 18px; } .lb-next { right: 18px; }
+    @media (max-width: 760px) {
+      .g-tabs { top: 70px; }
+      .g-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 150px; gap: 9px; }
+      .g-item:nth-child(7n+5) { grid-column: auto; }
+      .lb-stage { padding: 60px 12px 0; inset: 0 0 128px; }
+      .lb-img { max-height: calc(100dvh - 196px); }
+      .lb-bar { height: 128px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 10px; padding: 0 18px; }
+      .lb-prev, .lb-next { top: auto; bottom: 74px; width: 40px; height: 40px; }
+      .lb-prev { left: auto; right: 70px; } .lb-next { right: 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .g-item { transition: none; opacity: 1; transform: none; } .lb *, .lb::backdrop { animation: none !important; } }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="container nav" aria-label="Main navigation">
+      <a class="brand" href="index.html#home" aria-label="Daamin Estate & Builder home">
+        <img class="brand-mark" src="images/daamin-mark.png" alt="" width="196" height="196" />
+        <span><span class="brand-name">DAAMIN ESTATE & BUILDER</span><span class="brand-tag">DAAMIN BUILDS BETTER</span></span>
+      </a>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="navLinks">Menu ☰</button>
+      <div class="nav-links" id="navLinks">
+        <a href="index.html#home">Home</a>
+        <a href="index.html#videos">Videos</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#projects">Projects</a>
+        <a href="gallery.html" style="color:var(--orange)" aria-current="page">Gallery</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#contact">Contact</a>
+        <a class="btn btn-primary" href="index.html#contact">Enquire Now <span aria-hidden="true">↗</span></a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="g-hero">
+      <div class="container">
+        <p class="eyebrow">Inspiration gallery</p>
+        <h1>Find the style you want for your home.</h1>
+        <p class="lead">Browse by category, open any picture, and note the patterns you like. These are inspiration photographs, not Daamin's completed projects. Bring your favourites to us and we can talk through what is possible.</p>
+      </div>
+    </section>
+
+    <nav class="g-tabs" aria-label="Gallery categories"><div class="container" id="tabs"></div></nav>
+
+    <div class="container" id="cats"></div>
+
+    <div class="container">
+      <p class="g-note">Photographs are from <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a> and are free to use under the <a href="https://unsplash.com/license" target="_blank" rel="noopener">Unsplash License</a>. They are shown for inspiration only. They do not show Daamin's work, and what is built for you depends on your plot, budget and agreed scope.</p>
+    </div>
+  </main>
+
+  <dialog class="lb" id="lb" aria-label="Picture viewer">
+    <button class="lb-btn lb-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="lb-btn lb-prev" type="button" aria-label="Previous picture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="lb-btn lb-next" type="button" aria-label="Next picture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <div class="lb-stage"><img class="lb-img" id="lbImg" alt=""></div>
+    <div class="lb-bar">
+      <div class="lb-info"><p class="lb-title" id="lbTitle"></p><p class="lb-meta"><span id="lbCount"></span> · <a id="lbSrc" href="#" target="_blank" rel="noopener">View on Unsplash</a></p></div>
+      <div class="lb-actions"><a class="btn btn-primary" href="index.html#contact">I like this style <span aria-hidden="true">↗</span></a></div>
+    </div>
+  </dialog>
+
+  <footer>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="footer-logo" href="index.html#home" aria-label="Daamin Estate &amp; Builder home"><img src="images/daamin-logo.png" alt="Daamin Estate &amp; Builder" width="270" height="268" /></a>
+          <p class="footer-about">Real estate, construction and property development solutions in Karachi, Pakistan.</p>
+        </div>
+        <div><h4>Explore</h4><div class="footer-links"><a href="index.html#services">Services</a><a href="index.html#projects">Projects</a><a href="gallery.html">Gallery</a><a href="index.html#about">About Us</a></div></div>
+        <div><h4>Company</h4><div class="footer-links"><a href="index.html#contact">Contact</a><a href="index.html#contact">Project Enquiries</a><a href="privacy.html">Privacy Policy</a></div></div>
+        <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a></div></div>
+      </div>
+      <div class="footer-bottom"><span>© <span id="year"></span> Daamin Estate & Builder. All rights reserved.</span><span>DAAMIN BUILDS BETTER</span></div>
+    </div>
+  </footer>
+  <a class="wa-float" href="https://wa.me/923219281965" target="_blank" rel="noopener" aria-label="Chat with Daamin on WhatsApp">✆</a>
+
+  <script src="gallery-data.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    const menuToggle = document.getElementById('menuToggle'), navLinks = document.getElementById('navLinks');
+    menuToggle.addEventListener('click', () => menuToggle.setAttribute('aria-expanded', String(navLinks.classList.toggle('open'))));
+
+    const G = window.GALLERY;
+    const thumb = (id) => 'https://images.unsplash.com/' + id + '?auto=format&fit=crop&w=720&q=75';
+    const full = (id) => 'https://images.unsplash.com/' + id + '?auto=format&w=1800&q=82';
+    const tabs = document.getElementById('tabs'), cats = document.getElementById('cats');
+    const buttons = {};   /* category key -> thumbnail buttons, in order */
+
+    G.categories.forEach((cat) => {
+      const list = G.photos[cat.key];
+      const tab = document.createElement('a');
+      tab.href = '#' + cat.key; tab.dataset.key = cat.key;
+      tab.append(cat.name);
+      const small = document.createElement('small'); small.textContent = list.length; tab.append(small);
+      tabs.append(tab);
+
+      const sec = document.createElement('section'); sec.className = 'g-cat'; sec.id = cat.key;
+      const h = document.createElement('h2'); h.textContent = cat.name;
+      const p = document.createElement('p'); p.textContent = cat.blurb;
+      const grid = document.createElement('div'); grid.className = 'g-grid';
+      buttons[cat.key] = list.map((ph, i) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'g-item';
+        b.setAttribute('aria-label', 'Open picture: ' + ph[1]);
+        const img = document.createElement('img'); img.src = thumb(ph[0]); img.alt = ph[1]; img.loading = i < 4 ? 'eager' : 'lazy'; img.decoding = 'async';
+        const cap = document.createElement('span'); cap.className = 'g-cap'; cap.textContent = ph[1];
+        b.append(img, cap); grid.append(b);
+        b.addEventListener('click', () => openAt(cat.key, i));
+        return b;
+      });
+      sec.append(h, p, grid); cats.append(sec);
+    });
+
+    /* Pictures rise into place as they scroll into view. */
+    const io = 'IntersectionObserver' in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -6% 0px' }) : null;
+    document.querySelectorAll('.g-item').forEach((el, i) => { if (io) { el.style.transitionDelay = (i % 6) * 60 + 'ms'; io.observe(el); } else el.classList.add('in'); });
+
+    /* The tab for the category on screen lights up. */
+    const tabEls = Array.from(tabs.children);
+    const spy = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) tabEls.forEach((t) => t.classList.toggle('on', t.dataset.key === e.target.id)); }), { rootMargin: '-35% 0px -60% 0px' });
+    document.querySelectorAll('.g-cat').forEach((s) => spy.observe(s));
+
+    /* Viewer */
+    const lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg');
+    const lbTitle = document.getElementById('lbTitle'), lbCount = document.getElementById('lbCount'), lbSrc = document.getElementById('lbSrc');
+    let curCat = null, curI = 0;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function paint(dir) {
+      const list = G.photos[curCat], ph = list[curI];
+      lbTitle.textContent = ph[1];
+      lbCount.textContent = G.categories.find((c) => c.key === curCat).name + ' · ' + (curI + 1) + ' of ' + list.length;
+      lbSrc.href = 'https://unsplash.com/photos/' + ph[2];
+      lbImg.alt = ph[1];
+      lbImg.src = thumb(ph[0]);           /* already cached from the grid: appears at once */
+      const sharp = new Image();
+      sharp.onload = () => { if (G.photos[curCat][curI] === ph) lbImg.src = full(ph[0]); };
+      sharp.src = full(ph[0]);
+      [1, -1].forEach((d) => { const n = list[(curI + d + list.length) % list.length]; new Image().src = thumb(n[0]); });
+      if (dir) {
+        lbImg.style.setProperty('--dx', dir * 36 + 'px');
+        lbImg.classList.remove('swap'); void lbImg.offsetWidth; lbImg.classList.add('swap');
+      }
+    }
+
+    /* Move the picture between its thumbnail's box and its resting place. */
+    function flip(fromRect, toRect, ms, easing) {
+      if (reduce || !fromRect || !toRect || !toRect.width) return Promise.resolve();
+      const dx = fromRect.left - toRect.left, dy = fromRect.top - toRect.top;
+      const sx = fromRect.width / toRect.width, sy = fromRect.height / toRect.height;
+      return lbImg.animate([{ transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + sx + ',' + sy + ')', borderRadius: '16px' }, { transform: 'none', borderRadius: '14px' }],
+        { duration: ms, easing: easing, fill: 'both' }).finished.catch(() => {});
+    }
+
+    function openAt(cat, i) {
+      curCat = cat; curI = i;
+      const from = buttons[cat][i].getBoundingClientRect();
+      paint(0);
+      document.documentElement.classList.add('lb-open');
+      lb.classList.remove('closing');
+      lb.showModal();
+      requestAnimationFrame(() => flip(from, lbImg.getBoundingClientRect(), 520, 'cubic-bezier(.22,1,.36,1)'));
+    }
+
+    function step(d) {
+      const n = G.photos[curCat].length;
+      curI = (curI + d + n) % n;
+      paint(d);
+    }
+
+    function closeLb() {
+      if (!lb.open || lb.classList.contains('closing')) return;
+      const btn = buttons[curCat][curI];
+      btn.scrollIntoView({ block: 'nearest' });
+      lb.classList.add('closing');
+      const to = btn.getBoundingClientRect(), now = lbImg.getBoundingClientRect();
+      const done = () => { lb.classList.remove('closing'); lbImg.getAnimations().forEach((a) => a.cancel()); lb.close(); };
+      if (reduce) return done();
+      const dx = to.left - now.left, dy = to.top - now.top;
+      lbImg.animate([{ transform: 'none', opacity: 1 }, { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(' + to.width / now.width + ',' + to.height / now.height + ')', opacity: .2 }],
+        { duration: 380, easing: 'cubic-bezier(.5,0,.75,0)', fill: 'forwards' }).finished.then(done, done);
+    }
+
+    lb.querySelector('.lb-close').addEventListener('click', closeLb);
+    lb.querySelector('.lb-prev').addEventListener('click', () => step(-1));
+    lb.querySelector('.lb-next').addEventListener('click', () => step(1));
+    lb.addEventListener('click', (e) => { if (e.target === lb || e.target.classList.contains('lb-stage')) closeLb(); });
+    lb.addEventListener('cancel', (e) => { e.preventDefault(); closeLb(); });
+    lb.addEventListener('close', () => { document.documentElement.classList.remove('lb-open'); const b = buttons[curCat] && buttons[curCat][curI]; if (b) b.focus({ preventScroll: true }); });
+    lb.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); } else if (e.key === 'ArrowRight') { e.preventDefault(); step(1); } });
+    let tx = null;
+    lb.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener('touchend', (e) => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1); }, { passive: true });
+
+    /* A link such as gallery.html#interiors scrolls straight to that category. */
+    if (location.hash) { const t = document.getElementById(location.hash.slice(1)); if (t) setTimeout(() => t.scrollIntoView(), 50); }
+  </script>
+</body>
+</html>

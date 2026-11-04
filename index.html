@@ -354,6 +354,15 @@
     .gallery-item:first-child { grid-row: span 2; }
     .gallery-item:after { content: ""; position: absolute; inset: 45% 0 0; background: linear-gradient(transparent,rgba(18,25,66,.65)); }
     .gallery-label { position: absolute; z-index: 1; bottom: 16px; left: 16px; color: white; font-weight: 750; }
+    .gallery-label small { display: block; margin-top: 2px; font-size: .76rem; font-weight: 600; opacity: .8; }
+    a.gallery-item { display: block; cursor: pointer; }
+    .gallery-item img { transition: transform .8s cubic-bezier(.22,1,.36,1); }
+    a.gallery-item:hover img, a.gallery-item:focus-visible img { transform: scale(1.08); }
+    a.gallery-item:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+    .gallery-open { position: absolute; z-index: 1; top: 14px; right: 14px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.92); color: var(--navy); font-weight: 800; opacity: 0; transform: translate(-8px, 8px) scale(.8); transition: opacity .3s ease, transform .3s cubic-bezier(.34,1.56,.64,1); }
+    a.gallery-item:hover .gallery-open, a.gallery-item:focus-visible .gallery-open { opacity: 1; transform: none; }
+    @media (hover: none) { .gallery-open { opacity: 1; transform: none; } }
+    .gallery-credit { margin: 16px 0 0; color: var(--muted); font-size: .82rem; }
     .contact { background: var(--soft); }
     .contact-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: 46px; align-items: start; }
     .contact-info { background: var(--navy); color: white; padding: 34px; border-radius: 22px; }
@@ -745,15 +754,15 @@
 
     <section class="section" id="gallery">
       <div class="container">
-        <div class="section-head"><div><p class="eyebrow">Project gallery</p><h2>See the work take shape.</h2><p class="lead">Use this gallery for actual construction milestones, building exteriors, finishing work and project walkthroughs.</p></div></div>
+        <div class="section-head"><div><p class="eyebrow">Inspiration gallery</p><h2>Find the style you want for your home.</h2><p class="lead">Browse ideas by category, from exteriors and interiors to staircases and finishing details. Open any picture, note the patterns you like, and bring them to us.</p></div><a class="btn btn-dark-outline" href="gallery.html">Open the full gallery <span aria-hidden="true">&rarr;</span></a></div>
         <div class="gallery-grid">
-          <div class="gallery-item"><img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=85" alt="Contemporary home architecture" loading="lazy"><span class="gallery-label">Architecture & spaces</span></div>
-          <div class="gallery-item"><img src="https://images.unsplash.com/photo-1503387762-592dee58ef4e?auto=format&fit=crop&w=700&q=85" alt="Construction project" loading="lazy"><span class="gallery-label">Construction</span></div>
-          <div class="gallery-item"><img src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=700&q=85" alt="Interior finish" loading="lazy"><span class="gallery-label">Interiors</span></div>
-          <div class="gallery-item"><img src="https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&w=700&q=85" alt="Apartment building" loading="lazy"><span class="gallery-label">Developments</span></div>
-          <div class="gallery-item"><img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=700&q=85" alt="Residential property detail" loading="lazy"><span class="gallery-label">Property details</span></div>
+          <a class="gallery-item" href="gallery.html#architecture" aria-label="Browse Architecture & spaces ideas"><img src="https://images.unsplash.com/photo-1721815693498-cc28507c0ba2?auto=format&fit=crop&w=1000&q=80" alt="Contemporary home with large windows and balconies" loading="lazy"><span class="gallery-label">Architecture &amp; spaces<small>12 ideas</small></span><span class="gallery-open" aria-hidden="true">&rarr;</span></a>
+          <a class="gallery-item" href="gallery.html#construction" aria-label="Browse Construction ideas"><img src="https://images.unsplash.com/photo-1587582423116-ec07293f0395?auto=format&fit=crop&w=700&q=80" alt="Worker on a building frame" loading="lazy"><span class="gallery-label">Construction<small>12 ideas</small></span><span class="gallery-open" aria-hidden="true">&rarr;</span></a>
+          <a class="gallery-item" href="gallery.html#interiors" aria-label="Browse Interiors ideas"><img src="https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=700&q=80" alt="Living room with a large window" loading="lazy"><span class="gallery-label">Interiors<small>12 ideas</small></span><span class="gallery-open" aria-hidden="true">&rarr;</span></a>
+          <a class="gallery-item" href="gallery.html#developments" aria-label="Browse Developments ideas"><img src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=700&q=80" alt="High-rise apartment building" loading="lazy"><span class="gallery-label">Developments<small>12 ideas</small></span><span class="gallery-open" aria-hidden="true">&rarr;</span></a>
+          <a class="gallery-item" href="gallery.html#details" aria-label="Browse Property details ideas"><img src="https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?auto=format&fit=crop&w=700&q=80" alt="Staircase design" loading="lazy"><span class="gallery-label">Property details<small>13 ideas</small></span><span class="gallery-open" aria-hidden="true">&rarr;</span></a>
         </div>
-        <div class="notice" style="margin-top:18px">Replace illustrative images with Daamin-owned or authorized photographs before publishing. Add captions and dates to genuine progress updates.</div>
+        <p class="gallery-credit">Inspiration photographs from Unsplash. They are ideas to pick from, not Daamin&rsquo;s completed projects.</p>
       </div>
     </section>
 
@@ -812,7 +821,7 @@
               <div class="field full"><label for="message">Message *</label><textarea id="message" name="message" required placeholder="Please tell us a little about your requirements."></textarea></div>
             </div>
             <button class="btn btn-primary" type="submit">Prepare WhatsApp Enquiry ↗</button>
-            <p class="form-note">Starter demo: this form opens WhatsApp with your message. A production website should include a privacy notice and tested form handling.</p>
+            <p class="form-note">This form opens WhatsApp with your message ready to send. Nothing is sent until you press send there. See our <a href="privacy.html" style="text-decoration:underline">Privacy Policy</a>.</p>
             <p id="formStatus" role="status" aria-live="polite" class="form-note"></p>
           </form>
         </div>
@@ -835,7 +844,7 @@
           <p class="footer-about">Real estate, construction and property development solutions in Karachi, Pakistan.</p>
         </div>
         <div><h4>Explore</h4><div class="footer-links"><a href="#services">Services</a><a href="#projects">Projects</a><a href="#gallery">Gallery</a><a href="#about">About Us</a></div></div>
-        <div><h4>Company</h4><div class="footer-links"><a href="#contact">Contact</a><a href="#contact">Careers</a><a href="#contact">Project Enquiries</a><a href="#contact">Privacy Policy (add page)</a></div></div>
+        <div><h4>Company</h4><div class="footer-links"><a href="#contact">Contact</a><a href="#contact">Careers</a><a href="#contact">Project Enquiries</a><a href="privacy.html">Privacy Policy</a></div></div>
         <div><h4>Contact</h4><div class="footer-links"><a href="tel:+923219281965">+92 321 9281965</a><a href="tel:+923353800608">+92 335 3800608</a><a href="https://www.daamin.com" target="_blank" rel="noopener">www.daamin.com</a><a href="https://www.youtube.com/@daaminProperties" target="_blank" rel="noopener">YouTube · @daaminProperties</a></div></div>
       </div>
       <div class="footer-bottom"><span>© <span id="year"></span> Daamin Estate & Builder. All rights reserved.</span><span>DAAMIN BUILDS BETTER</span></div>
