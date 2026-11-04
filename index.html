@@ -110,6 +110,36 @@
     .service-icon { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 14px; background: #fff0e9; color: var(--orange); font-size: 1.35rem; margin-bottom: 23px; }
     .service-card h3 { color: var(--navy); margin-bottom: 10px; }
     .service-card p { color: var(--muted); font-size: .93rem; margin-bottom: 0; }
+    .service-card { position: relative; cursor: pointer; display: flex; flex-direction: column; -webkit-tap-highlight-color: transparent; }
+    .service-card:active { transform: scale(.975); }
+    .service-card:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+    .service-card:hover .service-icon { transform: rotate(-8deg) scale(1.08); }
+    .service-icon { transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+    .service-more { margin-top: auto; padding-top: 16px; color: var(--orange); font-size: .84rem; font-weight: 800; }
+    .service-more span { display: inline-block; transition: transform .25s ease; }
+    .service-card:hover .service-more span { transform: translateX(5px); }
+    /* Service details: the same cut-glass panel as the project viewer, growing out of the card that was clicked. */
+    .viewer.service-viewer { width: min(620px, calc(100vw - 32px)); }
+    .service-viewer[open] { animation: svcIn .45s cubic-bezier(.22,1,.36,1); transform-origin: var(--ox, 50%) var(--oy, 50%); }
+    .service-viewer.closing { animation: svcOut .22s ease forwards; }
+    .service-viewer.closing::backdrop { animation: viewerFade .22s ease reverse forwards; }
+    @keyframes svcIn { from { opacity: 0; transform: scale(.55); } to { opacity: 1; transform: none; } }
+    @keyframes svcOut { to { opacity: 0; transform: scale(.9) translateY(10px); } }
+    .service-body { position: relative; padding: 40px 38px 34px; }
+    .service-head { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding-right: 44px; }
+    .service-viewer .service-icon { flex: none; margin: 0; background: rgba(238,101,45,.18); color: #ffb08a; animation: svcPop .6s .12s cubic-bezier(.34,1.56,.64,1) both; }
+    .service-viewer h3 { margin: 0; font-size: clamp(1.45rem, 3vw, 1.9rem); line-height: 1.12; letter-spacing: -.02em; animation: svcRise .5s .1s ease both; }
+    .service-viewer p { margin: 0; color: rgba(255,255,255,.82); animation: svcRise .5s .18s ease both; }
+    .service-viewer h4 { margin: 22px 0 10px; color: #ffb08a; font-size: .78rem; letter-spacing: .09em; text-transform: uppercase; animation: svcRise .5s .24s ease both; }
+    .service-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+    .service-list li { position: relative; padding-left: 28px; color: rgba(255,255,255,.88); font-size: .95rem; animation: svcRise .5s calc(.3s + var(--i) * .07s) ease both; }
+    .service-list li:before { content: ""; position: absolute; left: 0; top: .3em; width: 16px; height: 16px; border-radius: 50%; background: rgba(238,101,45,.22) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffb08a' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 11px no-repeat; }
+    .service-note { margin-top: 20px !important; padding: 11px 13px; border-radius: 12px; border: 1px solid rgba(255,176,138,.34); background: rgba(255,176,138,.1); color: #ffd7c5 !important; font-size: .84rem; }
+    .service-viewer .btn { margin-top: 22px; animation: svcRise .5s .55s ease both; }
+    @keyframes svcRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    @keyframes svcPop { from { opacity: 0; transform: scale(.3) rotate(-25deg); } to { opacity: 1; transform: none; } }
+    @media (max-width: 560px) { .service-body { padding: 30px 22px 26px; } }
+    @media (prefers-reduced-motion: reduce) { .service-viewer, .service-viewer * { animation: none !important; } .service-card:hover .service-icon { transform: none; } }
     .videos { position: relative; overflow: hidden; color: white; background: linear-gradient(158deg, #0c1232 0%, var(--navy) 46%, #1a2550 100%); }
     /* Cut-glass facets catching light across the band */
     .videos:before, .viewer-shell:before, .review-shell:before { content: ""; position: absolute; inset: 0; pointer-events: none; background-image:
@@ -530,12 +560,12 @@
           <div><p class="eyebrow">What we do</p><h2>Services built around your needs.</h2><p class="lead">Explore our real estate and construction service areas. Specific scope and availability are confirmed according to each project.</p></div>
         </div>
         <div class="service-grid">
-          <article class="service-card"><div class="service-icon">⌂</div><h3>Real Estate Services</h3><p>Residential and commercial property sales, purchases, rentals and leasing enquiries.</p></article>
-          <article class="service-card"><div class="service-icon">▥</div><h3>Construction & Building</h3><p>Building execution, structural work, masonry, slab work and finishing according to agreed scope.</p></article>
-          <article class="service-card"><div class="service-icon">◇</div><h3>Property Development</h3><p>Residential development and project presentation, including apartment-focused projects.</p></article>
-          <article class="service-card"><div class="service-icon">↗</div><h3>Property Investment Guidance</h3><p>Support in exploring property options and understanding relevant location and property considerations.</p></article>
-          <article class="service-card"><div class="service-icon">✧</div><h3>Renovation & Interiors</h3><p>Renovation, interior finishing and related work, depending on project requirements.</p></article>
-          <article class="service-card"><div class="service-icon">▤</div><h3>Project Sales & Marketing</h3><p>Project information, marketing support, construction updates and buyer enquiries.</p></article>
+          <article class="service-card" role="button" tabindex="0" data-service="0" aria-haspopup="dialog"><div class="service-icon">⌂</div><h3>Real Estate Services</h3><p>Residential and commercial property sales, purchases, rentals and leasing enquiries.</p><span class="service-more">Learn more <span aria-hidden="true">&rarr;</span></span></article>
+          <article class="service-card" role="button" tabindex="0" data-service="1" aria-haspopup="dialog"><div class="service-icon">▥</div><h3>Construction & Building</h3><p>Building execution, structural work, masonry, slab work and finishing according to agreed scope.</p><span class="service-more">Learn more <span aria-hidden="true">&rarr;</span></span></article>
+          <article class="service-card" role="button" tabindex="0" data-service="2" aria-haspopup="dialog"><div class="service-icon">◇</div><h3>Property Development</h3><p>Residential development and project presentation, including apartment-focused projects.</p><span class="service-more">Learn more <span aria-hidden="true">&rarr;</span></span></article>
+          <article class="service-card" role="button" tabindex="0" data-service="3" aria-haspopup="dialog"><div class="service-icon">↗</div><h3>Property Investment Guidance</h3><p>Support in exploring property options and understanding relevant location and property considerations.</p><span class="service-more">Learn more <span aria-hidden="true">&rarr;</span></span></article>
+          <article class="service-card" role="button" tabindex="0" data-service="4" aria-haspopup="dialog"><div class="service-icon">✧</div><h3>Renovation & Interiors</h3><p>Renovation, interior finishing and related work, depending on project requirements.</p><span class="service-more">Learn more <span aria-hidden="true">&rarr;</span></span></article>
+          <article class="service-card" role="button" tabindex="0" data-service="5" aria-haspopup="dialog"><div class="service-icon">▤</div><h3>Project Sales & Marketing</h3><p>Project information, marketing support, construction updates and buyer enquiries.</p><span class="service-more">Learn more <span aria-hidden="true">&rarr;</span></span></article>
         </div>
       </div>
     </section>
@@ -833,6 +863,18 @@
     </div>
   </dialog>
 
+  <dialog class="viewer service-viewer" id="serviceViewer" aria-labelledby="serviceTitle">
+    <div class="service-body">
+      <button class="viewer-close" type="button" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="service-head"><div class="service-icon" id="serviceIcon" aria-hidden="true"></div><h3 id="serviceTitle"></h3></div>
+      <p id="serviceLead"></p>
+      <h4>What this covers</h4>
+      <ul class="service-list" id="serviceList"></ul>
+      <p class="service-note" id="serviceNote"></p>
+      <a class="btn btn-primary" id="serviceEnquire" href="#contact">Enquire about this service <span aria-hidden="true">&#8599;</span></a>
+    </div>
+  </dialog>
+
   <dialog class="viewer review-viewer" id="reviewViewer" aria-label="Client review">
     <div class="viewer-shell review-shell">
       <button class="viewer-close" type="button" aria-label="Close review"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -894,6 +936,73 @@
       navLinks.classList.remove('open');
       menuToggle.setAttribute('aria-expanded', 'false');
     }));
+
+    /* Service details. Wording stays within what the cards already promise: no prices, timelines or guarantees. */
+    const SERVICES = [
+      { lead: 'Whether you are buying, selling or looking for a place to rent, we help you find and enquire about residential and commercial properties in Karachi.',
+        covers: ['Residential and commercial property sales', 'Help with property purchases', 'Rentals and leasing enquiries', 'Talking through your requirement: area, size and budget'],
+        note: 'Availability and terms are confirmed for each property.' },
+      { lead: 'We carry out building work from the structure to the finish, working to the scope agreed with you.',
+        covers: ['Building execution from start to completion', 'Structural work', 'Masonry and slab work', 'Finishing work'],
+        note: 'The exact scope is agreed with you before work begins.' },
+      { lead: 'We develop residential projects and present them clearly to buyers, including apartment-focused developments.',
+        covers: ['Residential development', 'Apartment-focused projects', 'Clear presentation of each project'],
+        note: 'See the Projects section for the work we are associated with.' },
+      { lead: 'We help you explore property options and understand the location and property considerations that matter before you decide.',
+        covers: ['Exploring property options', 'Understanding the location around a property', 'Understanding the property itself'],
+        note: 'This is guidance only. We do not promise investment returns, and the decision stays with you.' },
+      { lead: 'We renovate existing spaces and complete interiors, from refreshing a single area to finishing a full building.',
+        covers: ['Renovation work', 'Interior finishing', 'Related work, depending on what the project needs'],
+        note: 'What is included depends on your project requirements.' },
+      { lead: 'We support project sales with clear information, so buyers know what is being offered and how work is progressing.',
+        covers: ['Project information for buyers', 'Marketing support', 'Construction updates', 'Answers to buyer enquiries'],
+        note: 'Project details are confirmed with the team before you decide.' }
+    ];
+    (function () {
+      const dlg = document.getElementById('serviceViewer');
+      if (!dlg) return;
+      const cards = Array.from(document.querySelectorAll('.service-card[data-service]'));
+      let opener = null;
+      function open(card) {
+        const data = SERVICES[+card.dataset.service];
+        if (!data) return;
+        opener = card;
+        document.getElementById('serviceIcon').textContent = card.querySelector('.service-icon').textContent;
+        document.getElementById('serviceTitle').textContent = card.querySelector('h3').textContent;
+        document.getElementById('serviceLead').textContent = data.lead;
+        document.getElementById('serviceNote').textContent = data.note;
+        const list = document.getElementById('serviceList');
+        list.replaceChildren();
+        data.covers.forEach((text, i) => { const li = document.createElement('li'); li.style.setProperty('--i', i); li.textContent = text; list.appendChild(li); });
+        /* Grow out of the card that was clicked. */
+        const r = card.getBoundingClientRect();
+        dlg.classList.remove('closing');
+        document.documentElement.classList.add('viewer-open');
+        dlg.showModal();
+        const b = dlg.getBoundingClientRect();
+        dlg.style.setProperty('--ox', Math.round(r.left + r.width / 2 - b.left) + 'px');
+        dlg.style.setProperty('--oy', Math.round(r.top + r.height / 2 - b.top) + 'px');
+      }
+      function close() {
+        if (!dlg.open || dlg.classList.contains('closing')) return;
+        dlg.classList.add('closing');
+        setTimeout(() => { dlg.classList.remove('closing'); dlg.close(); }, 220);
+      }
+      cards.forEach((card) => {
+        card.addEventListener('click', () => open(card));
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(card); } });
+      });
+      dlg.querySelector('.viewer-close').addEventListener('click', close);
+      dlg.addEventListener('click', (e) => { if (e.target === dlg) close(); });
+      dlg.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
+      dlg.addEventListener('close', () => { document.documentElement.classList.remove('viewer-open'); if (opener) opener.focus({ preventScroll: true }); });
+      document.getElementById('serviceEnquire').addEventListener('click', (e) => {
+        e.preventDefault();
+        dlg.close();
+        const contact = document.getElementById('contact');
+        if (contact) contact.scrollIntoView({ behavior: 'smooth' });
+      });
+    })();
 
     document.querySelectorAll('.filter').forEach(button => {
       button.addEventListener('click', () => {
