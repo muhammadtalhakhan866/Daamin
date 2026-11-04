@@ -144,7 +144,8 @@
   root.append(launch, panel);
   document.body.appendChild(root);
 
-  var started = false, lastUnanswered = '', misses = 0, awaitingHandoff = false, lastQuestion = '';
+  var started = false, lastUnanswered = '', misses = 0, awaitingHandoff = false, lastQuestion = '', flow = null;
+  var DEFAULT_HINT = input.placeholder;
   var onHome = /(^|\/)(index\.html)?$/.test(location.pathname);
 
   function scroll() { log.scrollTop = log.scrollHeight; }
@@ -184,10 +185,114 @@
     });
   }
   function answer(d) {
+    if (flow) endFlow();
+    if (FLOW_AUTO[d.q]) { startFlow(FLOW_AUTO[d.q]); return; }
+    showAnswer(d, FLOW_OFFER[d.q]);
+  }
+  function showAnswer(d, offer) {
     reply(function () {
       say(d.a, 'bot');
       if (d.links.length) row(d.links.map(function (l) { return linkBtn(l[0], l[1]); }));
-      row([chip('Ask something else', '', function () { say('Ask something else', 'me'); reply(function () { say('Of course. Type your question, or pick a topic.', 'bot'); topics(); }); })]);
+      var more = [];
+      if (offer && FLOWS[offer]) more.push(chip(FLOWS[offer].offer, 'go', function () { say(FLOWS[offer].offer, 'me'); startFlow(offer); }));
+      more.push(chip('Ask something else', '', function () { say('Ask something else', 'me'); reply(function () { say('Of course. Type your question, or pick a topic.', 'bot'); topics(); }); }));
+      row(more);
+    });
+  }
+
+  /* ---------- guided questions: collect a few details, then hand over to WhatsApp ---------- */
+  var BUDGET = ['Under 50 lakh', '50 lakh to 1 crore', '1 to 2 crore', '2 crore or more', 'Not sure yet'];
+  var hasDigit = function (v) { return /\d/.test(v); };
+  var plain = function (v) { return v.replace(/[^a-z]/gi, '').length >= 2; };
+  var FLOWS = {
+    estimate: { offer: 'Get a cost estimate', about: 'a construction cost estimate', steps: [
+      { key: 'Plot size', ask: 'What is the size of your plot in square feet? For example: 1800 sq ft. If you only know it in marla or square yards, that works too.', hint: 'e.g. 1800 sq ft', ok: hasDigit, err: 'Please include the size as a number, for example 1800 sq ft or 5 marla.' },
+      { key: 'Location', ask: 'Where is the plot? Please tell me the area and city.', hint: 'e.g. Scheme 33, Karachi', ok: plain, err: 'Please tell me the area or city.' },
+      { key: 'Budget range', ask: 'What budget range do you have in mind?', chips: BUDGET, hint: 'or type your own range', ok: function (v) { return v.length > 0; } }
+    ] },
+    buy: { offer: 'Find a property', about: 'buying a property', steps: [
+      { key: 'Property type', ask: 'What kind of property are you looking for?', chips: ['House', 'Apartment / flat', 'Plot', 'Commercial'], hint: 'or type your own', ok: plain },
+      { key: 'Preferred area', ask: 'Which area would you like to buy in?', hint: 'e.g. Scheme 33, Karachi', ok: plain, err: 'Please tell me the area or city.' },
+      { key: 'Budget range', ask: 'What is your budget range?', chips: BUDGET, hint: 'or type your own range', ok: function (v) { return v.length > 0; } }
+    ] },
+    sell: { offer: 'Sell my property', about: 'selling a property', steps: [
+      { key: 'Property type', ask: 'What kind of property would you like to sell?', chips: ['House', 'Apartment / flat', 'Plot', 'Commercial'], hint: 'or type your own', ok: plain },
+      { key: 'Location', ask: 'Where is it located? Please tell me the area and city.', hint: 'e.g. Gulshan-e-Iqbal, Karachi', ok: plain, err: 'Please tell me the area or city.' },
+      { key: 'Size', ask: 'What is its size (sq ft, marla or sq yards)? You can skip this.', optional: true, hint: 'e.g. 120 sq yards', ok: hasDigit, err: 'Please include the size as a number, or tap Skip.' },
+      { key: 'Expected price', ask: 'Do you have an expected price in mind? You can skip this.', optional: true, hint: 'optional', ok: function (v) { return v.length > 0; } }
+    ] },
+    rent: { offer: 'Rent a property', about: 'renting or leasing a property', steps: [
+      { key: 'Property type', ask: 'What would you like to rent, or rent out?', chips: ['House', 'Apartment / flat', 'Shop / office', 'Other'], hint: 'or type your own', ok: plain },
+      { key: 'Area', ask: 'Which area is it in, or where are you looking?', hint: 'e.g. Scheme 33, Karachi', ok: plain, err: 'Please tell me the area or city.' },
+      { key: 'Monthly rent range', ask: 'What monthly rent range do you have in mind?', chips: ['Under 50,000', '50,000 to 100,000', '100,000 to 200,000', 'Over 200,000', 'Not sure yet'], hint: 'or type your own range', ok: function (v) { return v.length > 0; } }
+    ] },
+    reno: { offer: 'Plan my renovation', about: 'a renovation or interior project', steps: [
+      { key: 'What to renovate', ask: 'What would you like to renovate or fit out?', chips: ['Whole house', 'Kitchen', 'Bathrooms', 'Interiors and finishing', 'Other'], hint: 'or type your own', ok: plain },
+      { key: 'Location', ask: 'Where is the property? Please tell me the area and city.', hint: 'e.g. New Malir, Karachi', ok: plain, err: 'Please tell me the area or city.' },
+      { key: 'Size', ask: 'What is its size (sq ft, marla or sq yards)? You can skip this.', optional: true, hint: 'e.g. 1500 sq ft', ok: hasDigit, err: 'Please include the size as a number, or tap Skip.' },
+      { key: 'Budget range', ask: 'What budget range do you have in mind?', chips: BUDGET, hint: 'or type your own range', ok: function (v) { return v.length > 0; } }
+    ] }
+  };
+  /* Questions that begin a guided flow on their own, and ones that only offer it afterwards. */
+  var FLOW_AUTO = { 'Can I get a cost estimate for construction?': 'estimate', 'How do I buy a property?': 'buy', 'How do I sell my property?': 'sell', 'Do you help with renting?': 'rent', 'How do I list my property with you?': 'sell' };
+  var FLOW_OFFER = { 'Can you build my house?': 'estimate', 'How long does construction take?': 'estimate', 'Do you renovate old houses?': 'reno', 'Do you do interior work?': 'reno', 'Do you have houses for sale?': 'buy', 'Do you sell plots?': 'buy', 'Do you have apartments or flats?': 'buy' };
+  var INTENT = [
+    ['estimate', /(cost|estimate|quotation|quote|rate|price|budget|charges?).{0,40}(construct|build|building|house|home)|(construct|build|building).{0,40}(cost|estimate|quotation|quote|rate|price|budget)|how much.{0,30}(build|construct)/i],
+    ['buy', /\b(want|wanna|looking|like|need|interested|planning|how)\b.{0,25}\b(buy|purchase)\b/i],
+    ['sell', /\b(want|wanna|looking|like|need|planning|how|can i)\b.{0,25}\bsell\b|\bsell my\b/i],
+    ['rent', /\b(want|looking|need|interested|planning)\b.{0,25}\b(rent|lease|rental)\b|\brent my\b|\bkiraye\b/i],
+    ['reno', /\b(want|need|looking|planning|how)\b.{0,25}\b(renovat\w*|remodel\w*|refurbish\w*)\b|\brenovate my\b/i]
+  ];
+  var CANCEL = /^(cancel|stop|exit|quit|never ?mind|back|start over|reset)\b/i;
+  var SKIP = /^(skip|pass|no|none|n\/a)\b/i;
+
+  function startFlow(id) {
+    flow = { id: id, i: 0, data: [] };
+    lastUnanswered = ''; misses = 0; awaitingHandoff = false;
+    reply(function () {
+      say('Happy to help with ' + FLOWS[id].about + '. I just need a few details so our team can guide you properly. You can type "cancel" at any time.', 'bot');
+      flowAsk();
+    });
+  }
+  function flowAsk() {
+    var s = FLOWS[flow.id].steps[flow.i];
+    say(s.ask, 'bot');
+    input.placeholder = s.hint || 'Type your answer...';
+    var opts = [];
+    (s.chips || []).forEach(function (label) { opts.push(chip(label, '', function () { say(label, 'me'); flowAnswer(label); })); });
+    if (s.optional) opts.push(chip('Skip', '', function () { say('Skip', 'me'); flowAnswer(''); }));
+    if (opts.length) row(opts);
+  }
+  function flowAnswer(value) {
+    var f = FLOWS[flow.id], s = f.steps[flow.i];
+    if (value) flow.data.push([s.key, value]);
+    flow.i++;
+    if (flow.i < f.steps.length) { reply(flowAsk); return; }
+    flowFinish();
+  }
+  function flowInput(t) {
+    var s = FLOWS[flow.id].steps[flow.i];
+    if (CANCEL.test(t)) { endFlow(); reply(function () { say('No problem, I have cancelled that. Pick a topic or type another question.', 'bot'); topics(); }); return; }
+    if (HANDOFF.test(t)) { flowFinish(); return; }
+    if (s.optional && SKIP.test(t)) { flowAnswer(''); return; }
+    if (s.ok && !s.ok(t)) { reply(function () { say(s.err || 'Sorry, I did not catch that. Please try again.', 'bot'); }); return; }
+    flowAnswer(t);
+  }
+  function endFlow() { flow = null; input.placeholder = DEFAULT_HINT; }
+  /* Everything collected goes into one WhatsApp message that the visitor reviews and sends themselves. */
+  function flowFinish() {
+    var f = FLOWS[flow.id], data = flow.data.slice();
+    endFlow();
+    var lines = data.map(function (d) { return d[0] + ': ' + d[1]; });
+    var msg = 'Hello Daamin, I used the website assistant and I am interested in ' + f.about + '.' + (lines.length ? '\n' + lines.map(function (l) { return '- ' + l; }).join('\n') : '') + '\nPlease guide me on the next steps.';
+    var url = 'https://wa.me/' + F.whatsapp + '?text=' + encodeURIComponent(msg);
+    reply(function () {
+      say(lines.length ? 'Thank you. Here is what I have:\n' + lines.join('\n') : 'Connecting you to our team.', 'bot');
+      say('Tap the button to send this to our team on WhatsApp. It is ready to go, and nothing is sent until you press send there.', 'bot');
+      row([linkBtn('Continue on WhatsApp', url, true)]);
+      row([chip('Start over', '', function () { say('Start over', 'me'); reply(function () { say('Sure. What would you like to know?', 'bot'); topics(); }); }),
+           chip('Ask something else', '', function () { say('Ask something else', 'me'); reply(function () { say('Of course. Type your question, or pick a topic.', 'bot'); topics(); }); })]);
+      say('You can also call us on ' + F.phone1 + ' or ' + F.phone2 + '.', 'bot');
     });
   }
   function ask(text, quiet) { if (!quiet) lastQuestion = text; say(text, 'me'); }
@@ -227,11 +332,13 @@
     var t = text.trim();
     if (!t) return;
     ask(t, true);
+    if (flow) { flowInput(t); return; }
     if (awaitingHandoff) {
       if (YES.test(t)) { connect(); return; }
       if (NO.test(t)) { awaitingHandoff = false; reply(function () { say('No problem. Pick a topic or type another question.', 'bot'); topics(); }); return; }
     }
     if (HANDOFF.test(t)) { lastQuestion = lastUnanswered; connect(); return; }
+    for (var n = 0; n < INTENT.length; n++) { if (INTENT[n][1].test(t)) { lastQuestion = t; startFlow(INTENT[n][0]); return; } }
     var r = rank(t), best = r.top[0], kind = classify(r);
     if (kind === 'strong') {
       misses = 0; lastQuestion = t;
